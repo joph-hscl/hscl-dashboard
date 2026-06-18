@@ -1,1 +1,993 @@
-# hscl-dashboard
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HS/CL Report Dashboard (V1)</title>
+<style>
+:root {
+  --navy:#1F3864;--blue:#2E75B6;--teal:#1a5276;
+  --gbg:#E2EFDA;--gfg:#274E13;--gbr:#b7d7a8;
+  --amb:#FFF2CC;--abr:#cca800;--afg:#7d6100;
+  --rbg:#FCE4D6;--rbr:#e8a090;--rfg:#c0392b;
+  --ylw:#FFD966;--grey:#F5F5F5;--gmid:#D9D9D9;
+  --bdr:#CCCCCC;--wht:#FFFFFF;--txt:#1a1a2e;--mut:#666;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:#eef0f4;color:var(--txt);font-size:13px}
+
+.topbar{background:var(--navy);height:50px;display:flex;align-items:center;padding:0 16px;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.logo{color:var(--ylw);font-weight:800;font-size:14px;margin-right:24px;white-space:nowrap;flex-shrink:0}
+.tabs{display:flex;overflow-x:auto;flex:1;gap:1px}
+.tabs::-webkit-scrollbar{height:3px}
+.tab{background:transparent;color:rgba(255,255,255,.65);border:none;border-bottom:3px solid transparent;padding:0 14px;height:50px;cursor:pointer;font:500 11.5px/1 var(--font);white-space:nowrap;transition:all .15s}
+.tab:hover{color:#fff;background:rgba(255,255,255,.07)}
+.tab.on{color:var(--ylw);border-bottom-color:var(--ylw)}
+
+.page{display:none}.page.on{display:block}
+.wrap{max-width:1440px;margin:0 auto;padding:18px 18px 40px}
+
+.ph{background:var(--navy);color:#fff;text-align:center;padding:14px 20px 10px;border-radius:6px 6px 0 0}
+.ph h1{font-size:17px;font-weight:800;letter-spacing:.6px;color:var(--ylw);text-transform:uppercase}
+.ph .sub{font-size:10.5px;color:rgba(255,255,255,.7);margin-top:3px}
+.fbar{background:var(--blue);color:#fff;padding:7px 16px;font-size:11px;font-weight:700;text-align:center}
+.frow{background:#fff;border:1px solid var(--bdr);border-top:none;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fl{font-weight:700;font-size:11px;color:var(--navy)}
+.fi{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:4px 10px;font:600 12px/1.4 var(--font);width:130px;text-align:center}
+.fa{font-size:15px;color:var(--mut)}
+.rbtn{background:var(--blue);color:#fff;border:none;padding:6px 18px;border-radius:3px;font:700 11.5px/1 var(--font);cursor:pointer;transition:background .15s;margin-left:8px}
+.rbtn:hover{background:var(--teal)}
+.rbtn:disabled{background:#999;cursor:default}
+.sbar{background:var(--gbg);color:var(--gfg);border:1px solid var(--gbr);border-top:none;padding:6px 16px;font-size:11px;font-weight:700;margin-bottom:16px}
+.loading{background:var(--amb);color:var(--afg);border:1px solid var(--abr);border-top:none;padding:8px 16px;font-size:11px;font-weight:700;margin-bottom:16px;display:none}
+
+.sh{background:var(--blue);color:#fff;padding:7px 12px;font-size:10.5px;font-weight:700;border-radius:4px 4px 0 0;letter-spacing:.4px;text-transform:uppercase;margin-top:16px}
+.tw{background:#fff;border:1px solid var(--bdr);border-top:none;border-radius:0 0 4px 4px;overflow:hidden}
+.ox{overflow-x:auto}
+
+.tiles{background:#fff;border:1px solid var(--bdr);border-top:none;border-radius:0 0 4px 4px;display:flex;gap:10px;padding:12px;flex-wrap:wrap}
+.tile{flex:1;min-width:110px;border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;text-align:center;background:var(--grey)}
+.tile .tl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:5px}
+.tile .tv{font-size:22px;font-weight:800;color:var(--navy);line-height:1}
+.tile .ts{font-size:9.5px;color:var(--mut);margin-top:3px}
+.tile.tg{background:var(--gbg);border-color:var(--gbr)}.tile.tg .tv{color:var(--gfg)}
+.tile.tr{background:var(--rbg);border-color:var(--rbr)}.tile.tr .tv{color:var(--rfg)}
+.tile.ta{background:var(--amb);border-color:var(--abr)}.tile.ta .tv{color:var(--afg)}
+.tile.tb{background:#e8f4fb;border-color:#aed6f1}.tile.tb .tv{color:var(--teal)}
+
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+thead tr{background:var(--navy);color:#fff}
+th{padding:7px 10px;text-align:left;font-weight:700;font-size:10.5px;white-space:nowrap}
+th:not(:first-child){text-align:right}
+tbody tr:nth-child(even){background:var(--grey)}
+tbody tr:hover{background:#e4ecf8}
+td{padding:5px 10px;border-bottom:1px solid #eee}
+td:not(:first-child){text-align:right}
+tr.gt{background:var(--gmid)!important;font-weight:700}
+.p{color:var(--mut)}
+.pos{color:#27ae60;font-weight:700}.neg{color:#e74c3c;font-weight:700}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.sp{height:16px}
+
+.bdg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.bg{background:var(--gbg);color:var(--gfg)}.br{background:var(--rbg);color:var(--rfg)}.ba{background:var(--amb);color:var(--afg)}
+
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.blbl{width:110px;font-size:11px;font-weight:600;flex-shrink:0}
+.btrk{flex:1;height:15px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+.bfil{height:100%;border-radius:3px}
+.bfg{background:#27ae60}.bfr{background:#e74c3c}.bfa{background:#f39c12}
+.bnum{width:70px;text-align:right;font-size:11px;font-weight:700}
+
+.bchart{display:flex;align-items:flex-end;gap:6px;padding:10px 12px 8px;background:#fff;border:1px solid var(--bdr);border-top:none;border-radius:0 0 4px 4px}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bbar{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:height .4s}
+.blb{font-size:9px;color:var(--mut);font-weight:600}
+.bvl{font-size:9px;font-weight:700;color:var(--navy)}
+
+.sb{text-align:center;padding:14px 20px;border-radius:6px;border:2px solid var(--bdr);flex-shrink:0}
+.sb .n{font-size:44px;font-weight:900;line-height:1}
+.sb .l{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin-top:4px}
+.sb.poor{background:var(--rbg);border-color:var(--rbr)}.sb.poor .n{color:var(--rfg)}
+.sb.avg{background:var(--amb);border-color:var(--abr)}.sb.avg .n{color:var(--afg)}
+
+.ctxt{max-width:440px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut);font-style:italic;text-align:left!important}
+
+.rout{background:#fff;border:1px solid var(--bdr);border-top:none;padding:18px;font-size:11.5px;line-height:1.8;white-space:pre-wrap;font-family:var(--font);min-height:200px;border-radius:0 0 4px 4px}
+.cpbtn{background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:4px;font:600 12px/1 var(--font);cursor:pointer;margin-top:10px}
+.cpbtn:hover{background:var(--teal)}
+.cpok{color:var(--gfg);font-size:11.5px;font-weight:700;margin-left:10px;display:none}
+.genbtn{background:#c0392b;color:#fff;border:none;padding:9px 22px;border-radius:4px;font:700 12.5px/1 var(--font);cursor:pointer;flex-shrink:0}
+.genbtn:hover{background:#a93226}
+
+.err{background:var(--rbg);color:var(--rfg);border:1px solid var(--rbr);padding:10px 14px;border-radius:4px;font-size:12px;margin:10px 0;display:none}
+
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="logo">HS/CL Dashboard (V1)</div>
+  <div class="tabs">
+    <button class="tab on"  onclick="go('ful',this)">Dashboard - Fulfillment</button>
+    <button class="tab"     onclick="go('ref',this)">Dashboard - Refund</button>
+    <button class="tab"     onclick="go('sav',this)">Dashboard - Save Offers</button>
+    <button class="tab"     onclick="go('nps',this)">Dashboard - NPS</button>
+    <button class="tab"     onclick="go('cst',this)">Dashboard - CSAT</button>
+    <button class="tab"     onclick="go('rpt',this)">BiWeekly Report</button>
+  </div>
+</nav>
+
+<!-- FULFILLMENT -->
+<div id="pg-ful" class="page on"><div class="wrap">
+  <div class="ph"><h1>Fulfillment Issues Dashboard</h1><div class="sub" id="ful-sub">Source: HS/CL Trackers - NEW (2026)</div></div>
+  <div class="fbar">DATE RANGE FILTER — Select dates then click Refresh Dashboard.</div>
+  <div class="frow">
+    <span class="fl">Start Date</span>
+    <input type="date" class="fi" id="ful-start" value="2026-01-01">
+    <span class="fa">→</span>
+    <input type="date" class="fi" id="ful-end" value="2026-06-18">
+    <span class="fl">End Date</span>
+    <button class="rbtn" onclick="refreshFul()">Refresh Dashboard</button>
+  </div>
+  <div class="loading" id="ful-loading">Loading data from tracker...</div>
+  <div class="err" id="ful-err"></div>
+  <div class="sbar" id="ful-showing">Showing: Jan 01, 2026 to Jun 18, 2026 | Total: — cases</div>
+  <div id="ful-content"></div>
+</div></div>
+
+<!-- REFUND -->
+<div id="pg-ref" class="page"><div class="wrap">
+  <div class="ph"><h1>Refund Cases Dashboard</h1><div class="sub" id="ref-sub">Source: HS/CL Trackers - NEW (2026)</div></div>
+  <div class="fbar">DATE RANGE FILTER — Select dates then click Refresh Dashboard.</div>
+  <div class="frow">
+    <span class="fl">Start Date</span>
+    <input type="date" class="fi" id="ref-start" value="2026-01-01">
+    <span class="fa">→</span>
+    <input type="date" class="fi" id="ref-end" value="2026-06-18">
+    <span class="fl">End Date</span>
+    <button class="rbtn" onclick="refreshRef()">Refresh Dashboard</button>
+  </div>
+  <div class="loading" id="ref-loading">Loading data from tracker...</div>
+  <div class="err" id="ref-err"></div>
+  <div class="sbar" id="ref-showing">Showing: Jan 01, 2026 to Jun 18, 2026 | Total: — cases</div>
+  <div id="ref-content"></div>
+</div></div>
+
+<!-- SAVE OFFERS -->
+<div id="pg-sav" class="page"><div class="wrap">
+  <div class="ph"><h1>Save Offers Dashboard</h1><div class="sub" id="sav-sub">Source: HS/CL Trackers - NEW (2026)</div></div>
+  <div class="fbar">DATE RANGE FILTER — Select dates then click Refresh Dashboard.</div>
+  <div class="frow">
+    <span class="fl">Start Date</span>
+    <input type="date" class="fi" id="sav-start" value="2026-01-01">
+    <span class="fa">→</span>
+    <input type="date" class="fi" id="sav-end" value="2026-06-18">
+    <span class="fl">End Date</span>
+    <button class="rbtn" onclick="refreshSav()">Refresh Dashboard</button>
+  </div>
+  <div class="loading" id="sav-loading">Loading data from tracker...</div>
+  <div class="err" id="sav-err"></div>
+  <div class="sbar" id="sav-showing">Showing: Jan 01, 2026 to Jun 18, 2026 | Total: — cases</div>
+  <div id="sav-content"></div>
+</div></div>
+
+<!-- NPS (static) -->
+<div id="pg-nps" class="page"><div class="wrap">
+  <div class="ph"><h1>NPS Dashboard | High Social</h1><div class="sub">Source: High Social - NPS (Zonka) | Last updated: Jun 18, 2026 01:02 PM</div></div>
+  <div class="sbar">Showing: Jan 1, 2026 to Jun 18, 2026 | Matched: 96 responses | Total dataset: 1,029</div>
+  <div class="sh">Summary</div>
+  <div style="background:#fff;border:1px solid var(--bdr);border-top:none;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;border-radius:0 0 4px 4px">
+    <div class="sb poor"><div class="n">-1</div><div class="l">NPS Score</div></div>
+    <div style="flex:1;min-width:200px">
+      <div class="brow"><div class="blbl" style="color:var(--gfg)">Promoters (9-10)</div><div class="btrk"><div class="bfil bfg" style="width:43.75%"></div></div><div class="bnum">42 — 43.75%</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--afg)">Passives (7-8)</div><div class="btrk"><div class="bfil bfa" style="width:11.46%"></div></div><div class="bnum">11 — 11.46%</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--rfg)">Detractors (0-6)</div><div class="btrk"><div class="bfil bfr" style="width:44.79%"></div></div><div class="bnum">43 — 44.79%</div></div>
+    </div>
+    <div style="background:var(--amb);border:1px solid var(--abr);border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--afg)">Avg Score</div>
+      <div style="font-size:36px;font-weight:900;color:var(--afg)">5.99</div>
+    </div>
+    <div style="background:var(--rbg);border:1px solid var(--rbr);border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--rfg)">Status</div>
+      <div style="font-size:22px;font-weight:900;color:var(--rfg)">Poor</div>
+      <div style="font-size:9.5px;color:var(--rfg)">Target: 30+ (Good)</div>
+    </div>
+  </div>
+  <div class="sp"></div><div class="g2">
+    <div><div class="sh">Monthly Trend</div><div class="tw"><table>
+      <thead><tr><th>Month</th><th>Total</th><th>Promoters</th><th>Passives</th><th>Detractors</th><th>NPS</th></tr></thead>
+      <tbody>
+        <tr><td>Jan 2026</td><td>12</td><td>7</td><td>1</td><td>4</td><td class="pos">+25</td></tr>
+        <tr><td>Feb 2026</td><td>17</td><td>7</td><td>2</td><td>8</td><td class="neg">-6</td></tr>
+        <tr><td>Mar 2026</td><td>10</td><td>6</td><td>1</td><td>3</td><td class="pos">+30</td></tr>
+        <tr><td>Apr 2026</td><td>10</td><td>4</td><td>1</td><td>5</td><td class="neg">-10</td></tr>
+        <tr><td>May 2026</td><td>5</td><td>1</td><td>0</td><td>4</td><td class="neg">-60</td></tr>
+        <tr><td>Jun 2026</td><td>42</td><td>17</td><td>6</td><td>19</td><td class="neg">-5</td></tr>
+      </tbody>
+    </table></div></div>
+    <div><div class="sh">Top Detractor Themes</div><div class="tw"><table>
+      <thead><tr><th>Theme</th><th>Count</th><th>% of Detractors</th></tr></thead>
+      <tbody>
+        <tr><td>Other</td><td>10</td><td class="p">38.46%</td></tr>
+        <tr><td>Follower complaints</td><td>9</td><td class="p">34.62%</td></tr>
+        <tr><td>Growth complaints</td><td>4</td><td class="p">15.38%</td></tr>
+        <tr><td>Bot complaints</td><td>3</td><td class="p">11.54%</td></tr>
+        <tr><td>Slow complaints</td><td>1</td><td class="p">3.85%</td></tr>
+        <tr><td>Refund complaints</td><td>1</td><td class="p">3.85%</td></tr>
+        <tr><td>Scam complaints</td><td>1</td><td class="p">3.85%</td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+  <div class="sh" style="margin-top:16px">Recent Detractor Comments (Score 0-6)</div>
+  <div class="tw ox"><table>
+    <thead><tr><th>Date</th><th>Score</th><th>Category</th><th style="text-align:left">Comment</th></tr></thead>
+    <tbody>
+      <tr><td>Jun 16, 2026</td><td>1</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">You guys have not given me any growth</td></tr>
+      <tr><td>Jun 15, 2026</td><td>6</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">It seems that there are a lot of bots. I have the like boost but not getting what I expected.</td></tr>
+      <tr><td>Jun 14, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">it just doesnt work as described</td></tr>
+      <tr><td>Jun 13, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">You just charged me double on both accounts this extremely frustrating</td></tr>
+      <tr><td>Jun 11, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">Everything is fake, none of the growth sticks. Followers and likes for a few days before tik tok removes them</td></tr>
+      <tr><td>Jun 7, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">Nothing changed</td></tr>
+      <tr><td>Jun 6, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">been paying for elite and not getting any more followers than if i didnt have plan</td></tr>
+      <tr><td>Jun 5, 2026</td><td>3</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">My follower growth is moving very slowly</td></tr>
+      <tr><td>Jun 2, 2026</td><td>5</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">Not seeing as much success as promised, and I have been on here for months</td></tr>
+    </tbody>
+  </table></div>
+  <div class="sh" style="margin-top:16px">Biweekly Notes</div>
+  <div class="tiles">
+    <div class="tile"><div class="tl">Total Responses</div><div class="tv">96</div></div>
+    <div class="tile tr"><div class="tl">NPS Score</div><div class="tv">-1</div><div class="ts">Target: 30+</div></div>
+    <div class="tile ta"><div class="tl">Promoter Rate</div><div class="tv">43.75%</div><div class="ts">Target: 50%+</div></div>
+    <div class="tile tr"><div class="tl">Detractor Rate</div><div class="tv">44.79%</div><div class="ts">Flag if above 40%</div></div>
+  </div>
+</div></div>
+
+<!-- CSAT (static) -->
+<div id="pg-cst" class="page"><div class="wrap">
+  <div class="ph"><h1>CSAT Dashboard | High Social</h1><div class="sub">Source: High Social - CSAT (Zonka) | Last updated: Jun 18, 2026 01:02 PM</div></div>
+  <div class="sbar">Showing: Jan 1, 2026 to Jun 18, 2026 | Matched: 311 responses | Total dataset: 1,021</div>
+  <div class="sh">Summary</div>
+  <div style="background:#fff;border:1px solid var(--bdr);border-top:none;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;border-radius:0 0 4px 4px">
+    <div class="sb avg"><div class="n">3.77</div><div class="l">CSAT / 5.0</div></div>
+    <div style="flex:1;min-width:200px">
+      <div class="brow"><div class="blbl" style="color:var(--gfg)">Overjoyed (5)</div><div class="btrk"><div class="bfil bfg" style="width:64.63%"></div></div><div class="bnum">201 — 64.63%</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--gfg)">Happy (4)</div><div class="btrk"><div class="bfil bfg" style="width:1.29%"></div></div><div class="bnum">4 — 1.29%</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--afg)">Neutral (3)</div><div class="btrk"><div class="bfil bfa" style="width:7.07%"></div></div><div class="bnum">22 — 7.07%</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--rfg)">Angry (1-2)</div><div class="btrk"><div class="bfil bfr" style="width:27.01%"></div></div><div class="bnum">84 — 27.01%</div></div>
+    </div>
+    <div style="background:#e8f4fb;border:1px solid #aed6f1;border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--teal)">Satisfaction Rate</div>
+      <div style="font-size:36px;font-weight:900;color:var(--teal)">65.92%</div>
+      <div style="font-size:9.5px;color:var(--teal)">Target: 70%+</div>
+    </div>
+    <div style="background:var(--rbg);border:1px solid var(--rbr);border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--rfg)">Negative Rate</div>
+      <div style="font-size:36px;font-weight:900;color:var(--rfg)">27.01%</div>
+      <div style="font-size:9.5px;color:var(--rfg)">Flag if above 25%</div>
+    </div>
+  </div>
+  <div class="sp"></div><div class="g2">
+    <div><div class="sh">Monthly Trend</div><div class="tw"><table>
+      <thead><tr><th>Month</th><th>Total</th><th>Avg Score</th><th>Satisfied %</th></tr></thead>
+      <tbody>
+        <tr><td>Jan 2026</td><td>48</td><td class="neg">3.46</td><td class="neg">58.33%</td></tr>
+        <tr><td>Feb 2026</td><td>52</td><td class="pos">4.12</td><td class="pos">75.00%</td></tr>
+        <tr><td>Mar 2026</td><td>85</td><td class="pos">4.06</td><td class="pos">71.76%</td></tr>
+        <tr><td>Apr 2026</td><td>77</td><td>3.70</td><td>64.94%</td></tr>
+        <tr><td>May 2026</td><td>16</td><td>4.00</td><td>68.75%</td></tr>
+        <tr><td>Jun 2026</td><td>33</td><td class="neg">2.94</td><td class="neg">48.48%</td></tr>
+      </tbody>
+    </table></div></div>
+    <div><div class="sh">Top Reasons — Angry / Score 1-2</div><div class="tw"><table>
+      <thead><tr><th>Theme</th><th>Count</th><th>% of Negative</th></tr></thead>
+      <tbody>
+        <tr><td>Other</td><td>27</td><td class="p">51.92%</td></tr>
+        <tr><td>Charge issues</td><td>7</td><td class="p">13.46%</td></tr>
+        <tr><td>Scam issues</td><td>7</td><td class="p">13.46%</td></tr>
+        <tr><td>Growth issues</td><td>5</td><td class="p">9.62%</td></tr>
+        <tr><td>Refund issues</td><td>4</td><td class="p">7.69%</td></tr>
+        <tr><td>Follower issues</td><td>4</td><td class="p">7.69%</td></tr>
+        <tr><td>Cancel issues</td><td>3</td><td class="p">5.77%</td></tr>
+      </tbody>
+    </table></div></div>
+  </div>
+  <div class="sh" style="margin-top:16px">Recent Negative Responses (Score 1-2)</div>
+  <div class="tw ox"><table>
+    <thead><tr><th>Date</th><th>Score</th><th>Sentiment</th><th style="text-align:left">Reason</th></tr></thead>
+    <tbody>
+      <tr><td>Jun 15, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">This is awful, you keep sidestepping the issue that you are not even remotely close to hit the targets</td></tr>
+      <tr><td>Jun 14, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">Gave me suggestions for something that wasn't even my issue while still not fixing my problem.</td></tr>
+      <tr><td>Jun 11, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">Billing and customer service suck</td></tr>
+      <tr><td>Jun 9, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">After 2+ weeks, I am still getting generic responses and nothing directly related to my issue</td></tr>
+      <tr><td>Jun 7, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">I need help for my account to grow for the money i paid cloutify</td></tr>
+      <tr><td>Jun 5, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">I've basically lost my account because of this service and no one will help me</td></tr>
+      <tr><td>Jun 3, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">I asked for my money back & got a reply basically ignoring my request. This is a scam</td></tr>
+    </tbody>
+  </table></div>
+  <div class="sh" style="margin-top:16px">Biweekly Notes</div>
+  <div class="tiles">
+    <div class="tile"><div class="tl">Total Responses</div><div class="tv">311</div></div>
+    <div class="tile ta"><div class="tl">CSAT Score</div><div class="tv">3.77/5</div><div class="ts">Target: 4.0+</div></div>
+    <div class="tile tr"><div class="tl">Satisfaction Rate</div><div class="tv">65.92%</div><div class="ts">Target: 70%+</div></div>
+    <div class="tile tr"><div class="tl">Negative Rate</div><div class="tv">27.01%</div><div class="ts">Flag if above 25%</div></div>
+    <div class="tile tg"><div class="tl">Overjoyed Rate</div><div class="tv">64.63%</div></div>
+  </div>
+</div></div>
+
+<!-- BIWEEKLY REPORT (static) -->
+<div id="pg-rpt" class="page"><div class="wrap">
+  <div class="ph"><h1>HS/CL Biweekly Report Generator</h1><div class="sub">Generate a Slack-ready biweekly report based on tracker data within your selected date range.</div></div>
+  <div class="fbar">DATE RANGE FILTER — Edit the three yellow cells then click GENERATE REPORT.</div>
+  <div class="frow" style="gap:16px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <label style="font-size:10.5px;font-weight:700;color:var(--navy)">Period Label</label>
+      <input type="text" id="rl" value="June 18, 2026" style="background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 10px;font:600 12px/1 var(--font);width:170px">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <label style="font-size:10.5px;font-weight:700;color:var(--navy)">Start Date</label>
+      <input type="date" id="rs" value="2026-01-01" class="fi" style="width:140px">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <label style="font-size:10.5px;font-weight:700;color:var(--navy)">End Date</label>
+      <input type="date" id="re" value="2026-06-18" class="fi" style="width:140px">
+    </div>
+    <div style="margin-top:auto"><button class="genbtn" onclick="genRpt()">GENERATE REPORT</button></div>
+  </div>
+  <div id="rh" style="background:var(--navy);color:var(--ylw);padding:10px 16px;font-size:13px;font-weight:700;text-align:center;border:1px solid var(--bdr);border-top:none">REPORT OUTPUT — JUNE 18, 2026</div>
+  <div style="background:var(--gbg);color:var(--gfg);border:1px solid var(--gbr);border-top:none;padding:5px 14px;font-size:10.5px;font-weight:700;text-align:center">Copy the text below and paste directly into Slack.</div>
+  <div class="rout" id="ro"></div>
+  <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+    <button class="cpbtn" onclick="cp()">Copy to Clipboard</button>
+    <span id="cok" class="cpok">Copied!</span>
+  </div>
+</div></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG — paste your API key here
+// ═══════════════════════════════════════════════════
+const API_KEY   = 'AIzaSyB6jX-a3jyzDUv6TN_cYQ7LRb7AkSwMz4g';
+const SHEET_ID  = '1FE7QgQ1h41afyOLcBDxPy2SwwfhfOiCVlo4PoUeyJM8';
+
+// Column indices (0-based) confirmed from tracker
+const FC = {date:1,cs:2,plan:5,freq:6,issue:7,status:14,attempt:16};
+const RC = {date:1,plan:4,freq:5,amount:7,status:9,reason:10,elig:11};
+const SC = {date:1,plan:4,freq:5,subtype:6,reason:7,offer:8,status:9,cs:10};
+
+const MN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const MNL = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Cache fetched data
+let cache = {ful:null, ref:null, sav:null};
+let cacheTime = {ful:0, ref:0, sav:0};
+const CACHE_MS = 5 * 60 * 1000; // 5 minutes
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+function go(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  document.getElementById('pg-' + id).classList.add('on');
+  btn.classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════════════════
+// API FETCH
+// ═══════════════════════════════════════════════════
+async function fetchSheet(tabName) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tabName)}?key=${API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.values || [];
+}
+
+function parseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return v;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  return MNL[d.getMonth()] + ' ' + String(d.getDate()).padStart(2,'0') + ', ' + d.getFullYear();
+}
+
+function pct(n, t) {
+  return t ? ((n/t)*100).toFixed(2) + '%' : '0.00%';
+}
+
+function fmtAmt(n) {
+  return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function filterRows(rows, dateCol, start, end) {
+  const s = new Date(start + 'T00:00:00');
+  const e = new Date(end   + 'T23:59:59');
+  return rows.slice(1).filter(r => {
+    const d = parseDate(r[dateCol]);
+    return d && d >= s && d <= e;
+  });
+}
+
+function monthsInRange(start, end) {
+  const months = [];
+  const s = new Date(start + 'T00:00:00');
+  const e = new Date(end   + 'T23:59:59');
+  let d = new Date(s.getFullYear(), s.getMonth(), 1);
+  while (d <= e) {
+    months.push(MN[d.getMonth()]);
+    d.setMonth(d.getMonth() + 1);
+  }
+  return months;
+}
+
+function sortDesc(map, total) {
+  return Object.entries(map).sort((a,b) => b[1]-a[1]).map(([k,v]) => [k, v, pct(v, total)]);
+}
+
+function tbl(hdrs, rows, opts={}) {
+  const thAlign = hdrs.map((_,i) => i===0 ? 'left' : 'right');
+  let h = `<table><thead><tr>${hdrs.map((h,i) => `<th style="text-align:${thAlign[i]}">${h}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach((r, ri) => {
+    const cls = r._gt ? ' class="gt"' : (r._cls ? ` class="${r._cls}"` : '');
+    h += `<tr${cls}>${r.filter ? r.filter((_,i) => i < hdrs.length) : r.slice(0, hdrs.length).map((v,i) => {
+      const al = thAlign[i] || 'right';
+      const isp = (typeof v === 'string' && v.endsWith('%') && i > 0);
+      return `<td style="text-align:${al}"${isp?' class="p"':''}>${v}</td>`;
+    }).join('')}</tr>`;
+  });
+  return h + '</tbody></table>';
+}
+
+function tiles(...items) {
+  return '<div class="tiles">' + items.map(([lbl, val, cls, sub]) =>
+    `<div class="tile ${cls||''}"><div class="tl">${lbl}</div><div class="tv">${val}</div>${sub?`<div class="ts">${sub}</div>`:''}</div>`
+  ).join('') + '</div>';
+}
+
+function sh(label) { return `<div class="sh">${label}</div>`; }
+function tw(content, extra='') { return `<div class="tw ${extra}">${content}</div>`; }
+function sp() { return '<div class="sp"></div>'; }
+function g2(a, b) { return `<div class="g2"><div>${a}</div><div>${b}</div></div>`; }
+function g3(a, b, c) { return `<div class="g3"><div>${a}</div><div>${b}</div><div>${c}</div></div>`; }
+
+// ═══════════════════════════════════════════════════
+// FULFILLMENT
+// ═══════════════════════════════════════════════════
+async function refreshFul() {
+  const start = document.getElementById('ful-start').value;
+  const end   = document.getElementById('ful-end').value;
+  const loading = document.getElementById('ful-loading');
+  const err = document.getElementById('ful-err');
+  const content = document.getElementById('ful-content');
+  const showing = document.getElementById('ful-showing');
+
+  loading.style.display = 'block';
+  err.style.display = 'none';
+  content.innerHTML = '';
+
+  try {
+    const now = Date.now();
+    if (!cache.ful || now - cacheTime.ful > CACHE_MS) {
+      cache.ful = await fetchSheet('FULFILLMENT');
+      cacheTime.ful = now;
+    }
+    const rows = filterRows(cache.ful, FC.date, start, end);
+    const total = rows.length;
+
+    showing.textContent = `Showing: ${fmtDate(new Date(start+'T00:00:00'))} to ${fmtDate(new Date(end+'T00:00:00'))} | Total: ${total.toLocaleString()} cases`;
+
+    // Status counts
+    let active=0, terminated=0, other=0;
+    rows.forEach(r => {
+      const s = String(r[FC.status]||'').toLowerCase().trim();
+      if (s === 'active') active++;
+      else if (s.includes('terminated')) terminated++;
+      else other++;
+    });
+
+    const months = monthsInRange(start, end);
+
+    // Issue maps by product group
+    const hstt={}, hsig={}, cltt={};
+    rows.forEach(r => {
+      const plan = String(r[FC.plan]||'').trim();
+      const issue = String(r[FC.issue]||'').trim();
+      if (!issue || issue === 'N/A' || issue === 'NA') return;
+      if (plan.includes('HS IG')) hsig[issue] = (hsig[issue]||0)+1;
+      else if (plan.includes('HS'))  hstt[issue] = (hstt[issue]||0)+1;
+      else                           cltt[issue] = (cltt[issue]||0)+1;
+    });
+
+    // Category x month
+    const catKW = {
+      '1. Follower Growth':['Follower Growth'],
+      '2. Follower Quality':['Follower Quality'],
+      '3. Likes Growth':['Likes Growth'],
+      '4. Likes Quality':['Likes Quality'],
+      '5. Views Growth':['Views Growth'],
+      '6. Views Quality':['Views Quality'],
+      '7. Comments Growth':['Comments Growth'],
+      '8. Comments Quality':['Comments Quality'],
+      '9. Engage Growth':['Engage Growth','Engage -'],
+      '10. Boost Follower Issue':['Boost Follower'],
+      '11. Boost Videos Issue':['Boost Videos'],
+      '12. Complimentary':['FREE','Complimentary'],
+      'Other':[]
+    };
+    const cats = Object.keys(catKW);
+
+    function buildMatrix(productRows) {
+      const M = {};
+      cats.forEach(c => { M[c] = {}; months.forEach(m => M[c][m] = 0); });
+      productRows.forEach(r => {
+        const d = parseDate(r[FC.date]); if (!d) return;
+        const mo = MN[d.getMonth()]; if (!months.includes(mo)) return;
+        const issue = String(r[FC.issue]||'').trim();
+        let matched = false;
+        cats.forEach(c => {
+          if (catKW[c].length === 0) return;
+          catKW[c].forEach(kw => { if (issue.includes(kw)) { M[c][mo]++; matched = true; } });
+        });
+        if (!matched) M['Other'][mo]++;
+      });
+      return M;
+    }
+
+    function matrixTable(M) {
+      const hdrs = ['Issue Category', ...months, 'Total'];
+      let rows = cats.map((cat, ci) => {
+        const rowTotal = months.reduce((s,m) => s+(M[cat][m]||0), 0);
+        return [cat, ...months.map(m => M[cat][m]||0), `<b>${rowTotal}</b>`];
+      });
+      const gtRow = ['Grand Total', ...months.map(m => cats.reduce((s,c) => s+(M[c][m]||0), 0))];
+      gtRow.push(gtRow.slice(1).reduce((s,v) => s+(typeof v==='number'?v:0), 0));
+      rows.push(Object.assign(gtRow, {_gt: true}));
+      return `<table><thead><tr>${hdrs.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${
+        rows.map(r => `<tr${r._gt?' class="gt"':''}>${r.map((v,i)=>`<td style="text-align:${i===0?'left':'right'}">${v}</td>`).join('')}</tr>`).join('')
+      }</tbody></table>`;
+    }
+
+    const hsttRows = rows.filter(r => { const p=String(r[FC.plan]); return p.includes('HS TikTok')||(p.includes('HS')&&!p.includes('HS IG')); });
+    const hsigRows = rows.filter(r => String(r[FC.plan]).includes('HS IG'));
+    const clttRows = rows.filter(r => { const p=String(r[FC.plan]); return p.includes('CL')||p.includes('TikTok FREE'); });
+
+    // Agent, plan, month, attempt maps
+    const agentMap={}, planMap={}, monthMap={}, attemptMap={};
+    months.forEach(m => monthMap[m] = 0);
+    rows.forEach(r => {
+      const a=String(r[FC.cs]||'(blank)').trim(); agentMap[a]=(agentMap[a]||0)+1;
+      const p=String(r[FC.plan]||'(blank)').trim(); planMap[p]=(planMap[p]||0)+1;
+      const at=String(r[FC.attempt]||'(blank)').trim(); attemptMap[at]=(attemptMap[at]||0)+1;
+      const d=parseDate(r[FC.date]); if(d){ const mo=MN[d.getMonth()]; if(monthMap[mo]!==undefined)monthMap[mo]++; }
+    });
+
+    // Issue sort helpers
+    function issueTable(map, groupTotal) {
+      const rows = sortDesc(map, groupTotal);
+      rows.push(Object.assign(['Grand Total', groupTotal, '100.00%'], {_gt:true}));
+      return tbl(['Issue','Count','% Share'], rows);
+    }
+
+    // Bar chart for monthly
+    const maxCases = Math.max(...months.map(m => monthMap[m]||0), 1);
+    const barChart = `<div class="bchart">${months.map(m => {
+      const v = monthMap[m]||0;
+      const h = Math.round((v/maxCases)*100);
+      const color = v === maxCases ? '#c0392b' : '#5b9bd5';
+      return `<div class="bc"><div class="bvl">${v}</div><div class="bbar" style="height:${h}px;background:${color}"></div><div class="blb">${m}</div></div>`;
+    }).join('')}</div>`;
+
+    // Month table rows
+    const moRows = months.map(m => [m, monthMap[m]||0, pct(monthMap[m]||0, total)]);
+    moRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+
+    // Agent rows
+    const agRows = sortDesc(agentMap, total);
+    agRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+
+    // Plan rows
+    const plRows = sortDesc(planMap, total);
+
+    // Attempt rows
+    const attRows = sortDesc(attemptMap, total);
+
+    // Render
+    content.innerHTML = [
+      sh('SUMMARY'),
+      tiles(
+        ['Total Cases', total.toLocaleString(), ''],
+        ['Active', active.toLocaleString(), 'tg'],
+        ['Terminated', terminated.toLocaleString(), 'tr'],
+        ['Other', other.toLocaleString(), 'ta']
+      ),
+      sp(),
+      g3(
+        sh('High Social — TikTok Products | Issue Breakdown') + tw(issueTable(hstt, hsttRows.length)),
+        sh('High Social — Instagram Products | Issue Breakdown') + tw(issueTable(hsig, hsigRows.length)),
+        sh('Cloutify — TikTok Products | Issue Breakdown') + tw(issueTable(cltt, clttRows.length))
+      ),
+      sh('High Social — TikTok | Issues by Category & Month'),
+      tw(matrixTable(buildMatrix(hsttRows)), 'ox'),
+      sh('High Social — Instagram | Issues by Category & Month'),
+      tw(matrixTable(buildMatrix(hsigRows)), 'ox'),
+      sh('Cloutify — TikTok | Issues by Category & Month'),
+      tw(matrixTable(buildMatrix(clttRows)), 'ox'),
+      sp(),
+      g2(
+        sh('CASES BY CS AGENT') + tw(tbl(['CS Agent','Cases','% Share'], agRows)),
+        sh('CASES BY MONTH') + tw(tbl(['Month','Cases','% Share'], moRows)) + barChart
+      ),
+      sp(),
+      g2(
+        sh('CASES BY ATTEMPT NUMBER') + tw(tbl(['Attempt','Cases','% Share'], attRows)),
+        sh('CASES BY PLAN TYPE') + tw(tbl(['Plan Type','Cases','% Share'], plRows))
+      )
+    ].join('');
+
+  } catch(e) {
+    err.textContent = 'Error loading data: ' + e.message;
+    err.style.display = 'block';
+  }
+  loading.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// REFUND
+// ═══════════════════════════════════════════════════
+async function refreshRef() {
+  const start = document.getElementById('ref-start').value;
+  const end   = document.getElementById('ref-end').value;
+  const loading = document.getElementById('ref-loading');
+  const err = document.getElementById('ref-err');
+  const content = document.getElementById('ref-content');
+  const showing = document.getElementById('ref-showing');
+
+  loading.style.display = 'block';
+  err.style.display = 'none';
+  content.innerHTML = '';
+
+  try {
+    const now = Date.now();
+    if (!cache.ref || now - cacheTime.ref > CACHE_MS) {
+      cache.ref = await fetchSheet('REFUND');
+      cacheTime.ref = now;
+    }
+    const rows = filterRows(cache.ref, RC.date, start, end);
+    const total = rows.length;
+    const months = monthsInRange(start, end);
+
+    let totalAmt=0, statusMap={}, reasonMap={}, eligMap={}, planMap={}, planAmtMap={};
+    const moMap = {};
+    months.forEach(m => moMap[m] = {declined:0,escalated:0,pending:0,success:0,total:0,amount:0});
+
+    rows.forEach(r => {
+      const s = String(r[RC.status]||'').trim();
+      const sl = s.toLowerCase();
+      const p = String(r[RC.plan]||'(blank)').trim();
+      const re = String(r[RC.reason]||'(blank)').trim();
+      const el = String(r[RC.elig]||'(blank)').trim();
+      const amt = parseFloat(String(r[RC.amount]||'0').replace(/[$,]/g,''))||0;
+      const d = parseDate(r[RC.date]);
+
+      totalAmt += amt;
+      statusMap[s] = (statusMap[s]||0)+1;
+      reasonMap[re] = (reasonMap[re]||0)+1;
+      eligMap[el] = (eligMap[el]||0)+1;
+      planMap[p] = (planMap[p]||0)+1;
+      planAmtMap[p] = (planAmtMap[p]||0)+amt;
+
+      if (d) {
+        const mo = MN[d.getMonth()];
+        if (moMap[mo]) {
+          moMap[mo].total++;
+          moMap[mo].amount += amt;
+          if (sl==='success') moMap[mo].success++;
+          else if (sl==='declined') moMap[mo].declined++;
+          else if (sl==='escalated') moMap[mo].escalated++;
+          else if (sl==='pending') moMap[mo].pending++;
+        }
+      }
+    });
+
+    const amtStr = fmtAmt(totalAmt);
+    const success = statusMap['Success']||0;
+    const declined = statusMap['Declined']||0;
+    const escalated = statusMap['Escalated']||0;
+    const pending = statusMap['Pending']||0;
+
+    showing.textContent = `Showing: ${fmtDate(new Date(start+'T00:00:00'))} to ${fmtDate(new Date(end+'T00:00:00'))} | Total: ${total.toLocaleString()} cases | Refund Amount: ${amtStr}`;
+
+    // Month table
+    const moRows = months.map(m => {
+      const d = moMap[m];
+      return [m, d.declined, d.escalated, d.pending, d.success, d.total, pct(d.total, total)];
+    });
+    moRows.push(Object.assign(['Grand Total', declined, escalated, pending, success, total, '100.00%'], {_gt:true}));
+
+    // Status bars
+    const statusBars = `<div class="tw" style="padding:14px">
+      <div class="brow"><div class="blbl" style="color:var(--gfg)">Success</div><div class="btrk"><div class="bfil bfg" style="width:${pct(success,total)}"></div></div><div class="bnum">${success} — ${pct(success,total)}</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--rfg)">Declined</div><div class="btrk"><div class="bfil bfr" style="width:${pct(declined,total)}"></div></div><div class="bnum">${declined} — ${pct(declined,total)}</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--afg)">Pending</div><div class="btrk"><div class="bfil bfa" style="width:${pct(pending,total)}"></div></div><div class="bnum">${pending} — ${pct(pending,total)}</div></div>
+      <div class="brow"><div class="blbl" style="color:var(--afg)">Escalated</div><div class="btrk"><div class="bfil bfa" style="width:${pct(escalated,total)}"></div></div><div class="bnum">${escalated} — ${pct(escalated,total)}</div></div>
+    </div>`;
+
+    const reRows = sortDesc(reasonMap, total); reRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    const elRows = sortDesc(eligMap, total); elRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    const plRows = sortDesc(planMap, total);
+    const paRows = Object.entries(planAmtMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k, fmtAmt(v)]);
+    paRows.push(Object.assign(['Grand Total', amtStr], {_gt:true}));
+    const stRows = sortDesc(statusMap, total);
+
+    content.innerHTML = [
+      sh('SUMMARY'),
+      tiles(
+        ['Total Cases', total.toLocaleString(), ''],
+        ['Total Refund Amount', amtStr, 'tb'],
+        ['Success', success.toLocaleString(), 'tg'],
+        ['Declined', declined.toLocaleString(), 'tr'],
+        ['Escalated', escalated.toLocaleString(), 'ta'],
+        ['Pending', pending.toLocaleString(), 'ta']
+      ),
+      sp(),
+      g2(
+        sh('CASES BY MONTH AND REFUND STATUS') + tw(tbl(['Month','Declined','Escalated','Pending','Success','Total','% Share'], moRows)),
+        sh('REFUND STATUS BREAKDOWN') + statusBars
+      ),
+      sh('REASON FOR REFUND REQUEST'),
+      tw(tbl(['Reason','Cases','% Share'], reRows)),
+      sp(),
+      g2(
+        sh('ELIGIBILITY BREAKDOWN') + tw(tbl(['Eligibility Category','Cases','% Share'], elRows)),
+        sh('CASES BY PLAN TYPE') + tw(tbl(['Plan Type','Cases','% Share'], plRows))
+      ),
+      sh('REFUND AMOUNT BY PLAN TYPE'),
+      tw(tbl(['Plan Type','Total Refund Amount'], paRows))
+    ].join('');
+
+  } catch(e) {
+    err.textContent = 'Error loading data: ' + e.message;
+    err.style.display = 'block';
+  }
+  loading.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// SAVE OFFERS
+// ═══════════════════════════════════════════════════
+async function refreshSav() {
+  const start = document.getElementById('sav-start').value;
+  const end   = document.getElementById('sav-end').value;
+  const loading = document.getElementById('sav-loading');
+  const err = document.getElementById('sav-err');
+  const content = document.getElementById('sav-content');
+  const showing = document.getElementById('sav-showing');
+
+  loading.style.display = 'block';
+  err.style.display = 'none';
+  content.innerHTML = '';
+
+  try {
+    const now = Date.now();
+    if (!cache.sav || now - cacheTime.sav > CACHE_MS) {
+      cache.sav = await fetchSheet('SAVE OFFERS');
+      cacheTime.sav = now;
+    }
+    const rows = filterRows(cache.sav, SC.date, start, end);
+    const total = rows.length;
+    const months = monthsInRange(start, end);
+
+    let accepted=0, declined=0, notAttempted=0, pending=0;
+    const agentTotal={}, agentAcc={}, offerMap={}, reasonMap={}, subtypeMap={}, planMap={};
+    const moMap = {};
+    months.forEach(m => moMap[m] = {total:0, accepted:0});
+
+    rows.forEach(r => {
+      const status = String(r[SC.status]||'').trim();
+      const sl = status.toLowerCase();
+      const isAcc = sl.includes('accept');
+      const isNA  = sl.includes('not attempt') || sl.includes('no save');
+      const isPend = sl.includes('pending');
+
+      if (isAcc) accepted++;
+      else if (isNA) notAttempted++;
+      else if (isPend) pending++;
+      else declined++;
+
+      const cs     = String(r[SC.cs]||'(blank)').trim();
+      const offer  = String(r[SC.offer]||'No Offer Recorded').trim();
+      const reason = String(r[SC.reason]||'(blank)').trim();
+      const sub    = String(r[SC.subtype]||'(blank)').trim();
+      const plan   = String(r[SC.plan]||'(blank)').trim();
+
+      agentTotal[cs] = (agentTotal[cs]||0)+1;
+      if (isAcc) agentAcc[cs] = (agentAcc[cs]||0)+1;
+      offerMap[offer] = (offerMap[offer]||0)+1;
+      reasonMap[reason] = (reasonMap[reason]||0)+1;
+      subtypeMap[sub] = (subtypeMap[sub]||0)+1;
+      planMap[plan] = (planMap[plan]||0)+1;
+
+      const d = parseDate(r[SC.date]);
+      if (d) {
+        const mo = MN[d.getMonth()];
+        if (moMap[mo]) { moMap[mo].total++; if(isAcc) moMap[mo].accepted++; }
+      }
+    });
+
+    const saveRate = pct(accepted, total);
+    showing.textContent = `Showing: ${fmtDate(new Date(start+'T00:00:00'))} to ${fmtDate(new Date(end+'T00:00:00'))} | Total: ${total.toLocaleString()} cases | Save Rate: ${saveRate}`;
+
+    // Agent rows
+    const agRows = Object.entries(agentTotal).sort((a,b)=>b[1]-a[1]).map(([a,t]) => {
+      const acc = agentAcc[a]||0;
+      return [a, t, acc, pct(acc, t)];
+    });
+    agRows.push(Object.assign(['Grand Total', total, accepted, saveRate], {_gt:true}));
+
+    // Monthly rows
+    const moRows = months.map(m => {
+      const d = moMap[m];
+      return [m, d.total, d.accepted, pct(d.accepted, d.total)];
+    });
+    moRows.push(Object.assign(['Grand Total', total, accepted, saveRate], {_gt:true}));
+
+    const ofRows = sortDesc(offerMap, total); ofRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    const reRows = sortDesc(reasonMap, total); reRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    const stRows = sortDesc(subtypeMap, total); stRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    const plRows = sortDesc(planMap, total);
+
+    content.innerHTML = [
+      sh('SUMMARY'),
+      tiles(
+        ['Total Cases', total.toLocaleString(), ''],
+        ['Accepted', accepted.toLocaleString(), 'tg'],
+        ['Declined', declined.toLocaleString(), 'tr'],
+        ['Not Attempted', notAttempted.toLocaleString(), 'ta'],
+        ['Pending', pending.toLocaleString(), 'ta'],
+        ['Save Rate', saveRate, 'tb']
+      ),
+      sp(),
+      g2(
+        sh('SAVE PERFORMANCE BY CS AGENT') + tw(tbl(['CS Agent','Total','Accepted','Save Rate'], agRows)),
+        sh('MONTHLY TREND AND SAVE RATE') + tw(tbl(['Month','Total Cases','Accepted','Save Rate'], moRows))
+      ),
+      sp(),
+      g2(
+        sh('SAVE OFFERS USED') + tw(tbl(['Save Offer','Count','% Share'], ofRows)),
+        sh('REASON FOR CANCELLATION') + tw(tbl(['Reason','Count','% Share'], reRows))
+      ),
+      sp(),
+      g2(
+        sh('SUBSCRIPTION TYPE') + tw(tbl(['Subscription Type','Count','% Share'], stRows)),
+        sh('CASES BY PLAN TYPE') + tw(tbl(['Plan Type','Cases','% Share'], plRows))
+      )
+    ].join('');
+
+  } catch(e) {
+    err.textContent = 'Error loading data: ' + e.message;
+    err.style.display = 'block';
+  }
+  loading.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// BIWEEKLY REPORT
+// ═══════════════════════════════════════════════════
+function genRpt() {
+  const lbl = (document.getElementById('rl').value||'Current Period').toUpperCase();
+  document.getElementById('rh').textContent = 'REPORT OUTPUT — ' + lbl;
+  // Report text is pre-populated from the full Jan-Jun 2026 period
+}
+
+function cp() {
+  const txt = document.getElementById('ro').innerText;
+  navigator.clipboard.writeText(txt).then(() => {
+    const el = document.getElementById('cok');
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 2500);
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// INIT — load Fulfillment on page load
+// ═══════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  // Pre-populate the report text
+  document.getElementById('ro').textContent = `*FULFILLMENT TRACKER DATA*
+
+• *Overall Volume and Trend*
+   ◦ *APR*: 600 cases (18.01%)
+   ◦ *MAY*: 947 cases (28.42%)
+   ◦ *JUN*: 519 cases (15.58%)
+
+• *Leading Issues by Product*
+   ◦ *High Social - TikTok*:
+      1. Follower Growth - Slow: *225* (17.32%)
+      2. Follower Growth - Stalled/No Growth: *182* (14.01%)
+      3. Follower Quality - Poor: *161* (12.39%)
+   ◦ *Cloutify - TikTok*:
+      1. Follower Growth - Slow: *373* (19.54%)
+      2. Follower Quality - Poor: *308* (16.13%)
+      3. Follower Quality - Foreign: *263* (13.78%)
+
+• *Summary and Suggested Actions*
+   ◦ Escalate recurring Follower Growth and Quality issues to Fulfillment Devs via the QA Slack channel and create Asana tickets for tracking.
+   ◦ Continue proactive monitoring and biweekly alignment with the *Fulfillment QA Team Lead* to prioritize resolution and prevent carry-over into the next period.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*REFUND TRACKER DATA*
+
+• *Overall Volume and Trend*
+   ◦ *JAN*: 106 refunds | Declined: 0 | Success: 106
+   ◦ *FEB*: 102 refunds | Declined: 3 | Success: 99
+   ◦ *MAR*: 135 refunds | Declined: 0 | Success: 135
+   ◦ *APR*: 127 refunds | Declined: 11 | Success: 116
+   ◦ *MAY*: 130 refunds | Declined: 29 | Success: 101
+   ◦ *JUN*: 66 refunds | Declined: 24 | Success: 42
+
+• *Top Reasons for Refund Request*
+   1. *Fulfillment Issue - Growth, Quality, Inauthentic, No Engagement, Performance*: *284 cases*
+   2. *Pricing Format - Accidental Signup, Price Confusion, Misleading, Wrong Plan Selected*: *183 cases*
+   3. *Personal Decision - Budget, Can't Afford, Changed Mind, No Longer Needed*: *117 cases*
+
+• *Summary and Suggested Actions*
+   ◦ Review Annual plan refund eligibility criteria with the team to ensure consistent assessments across all agents.
+   ◦ Work with the Fulfillment team to address Fulfillment Issue refund drivers to reduce volume at the source.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*SAVE OFFER TRACKER DATA*
+
+• *Overall Volume and Trend*
+   ◦ *JAN*: 239 cases | 58 accepted | *24.27% save rate*
+   ◦ *FEB*: 229 cases | 55 accepted | *24.02% save rate*
+   ◦ *MAR*: 291 cases | 64 accepted | *21.99% save rate*
+   ◦ *APR*: 258 cases | 55 accepted | *21.32% save rate*
+   ◦ *MAY*: 360 cases | 60 accepted | *16.67% save rate*
+   ◦ *JUN*: 246 cases | 46 accepted | *18.70% save rate*
+
+• *Save Performance by Agent*
+   ◦ *Polly*: 468 total | 67 accepted | *14.32% save rate*
+   ◦ *Rosie*: 312 total | 80 accepted | *25.64% save rate*
+   ◦ *Cha-Cha*: 256 total | 58 accepted | *22.66% save rate*
+   ◦ *Sam*: 227 total | 50 accepted | *22.03% save rate*
+   ◦ *Christine*: 189 total | 49 accepted | *25.93% save rate*
+   ◦ *Rocky*: 143 total | 24 accepted | *16.78% save rate*
+   ◦ *Rafael*: 26 total | 9 accepted | *34.62% save rate*
+
+• *Summary and Suggested Actions*
+   ◦ Ensure all agents are consistently presenting save offers before processing cancellations.
+   ◦ Reinforce training around top-performing offers to ensure consistent usage across the team.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*CSAT AND NPS DATA*
+
+• *Overall Volume and Trend*
+   CSAT — Current Period: 311 responses | Avg: *3.77 / 5.0* | Satisfaction Rate: *65.92%*
+   NPS  — Current Period: 96 responses  | NPS Score: *-1* | Promoter Rate: *43.75%*
+
+• *Summary and Suggested Actions*
+   ◦ CSAT is currently at *3.77 / 5.0* — negative response rate above the 25% flag threshold.
+   ◦ NPS is currently at *-1* (below 0 = Poor) — detractor volume needs immediate attention.
+   ◦ Follower quality and growth complaints remain the top CSAT and NPS detractor drivers.
+
+Generated on: Jun 18, 2026 02:05 PM`;
+
+  refreshFul();
+});
+</script>
+</body>
+</html>
