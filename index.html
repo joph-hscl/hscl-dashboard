@@ -894,10 +894,272 @@ async function refreshSav() {
 // ═══════════════════════════════════════════════════
 // BIWEEKLY REPORT
 // ═══════════════════════════════════════════════════
-function genRpt() {
-  const lbl = (document.getElementById('rl').value||'Current Period').toUpperCase();
+async function genRpt() {
+  var lbl = (document.getElementById('rl').value || 'Current Period').toUpperCase();
+  var start = document.getElementById('rs').value;
+  var end   = document.getElementById('re').value;
+
   document.getElementById('rh').textContent = 'REPORT OUTPUT — ' + lbl;
-  // Report text is pre-populated from the full Jan-Jun 2026 period
+  document.getElementById('ro').textContent = 'Generating report... fetching live data from tracker...';
+
+  try {
+    // Fetch all 3 tabs (use cache if available)
+    var now = Date.now();
+    if (!cache.ful || now - cacheTime.ful > CACHE_MS) { cache.ful = await fetchSheet('FULFILLMENT'); cacheTime.ful = now; }
+    if (!cache.ref || now - cacheTime.ref > CACHE_MS) { cache.ref = await fetchSheet('REFUND');      cacheTime.ref = now; }
+    if (!cache.sav || now - cacheTime.sav > CACHE_MS) { cache.sav = await fetchSheet('SAVE OFFERS'); cacheTime.sav = now; }
+
+    var fulRows = filterRows(cache.ful, FC.date, start, end);
+    var refRows = filterRows(cache.ref, RC.date, start, end);
+    var savRows = filterRows(cache.sav, SC.date, start, end);
+
+    var months = monthsInRange(start, end);
+
+    // ── FULFILLMENT ──────────────────────────────────────
+    var fulTotal = fulRows.length;
+
+    // Cases by month
+    var fulMoMap = {};
+    months.forEach(function(m) { fulMoMap[m] = 0; });
+    fulRows.forEach(function(r) {
+      var d = parseDate(r[FC.date]); if (!d) return;
+      var mo = MN[d.getMonth()]; if (fulMoMap[mo] !== undefined) fulMoMap[mo]++;
+    });
+
+    // Top issues by product
+    var hsttIssues = {}, clttIssues = {}, hsigIssues = {};
+    fulRows.forEach(function(r) {
+      var plan = String(r[FC.plan]||'').trim();
+      var issue = String(r[FC.issue]||'').trim();
+      if (!issue || issue === 'N/A' || issue === 'NA') return;
+      if (plan.includes('HS IG'))       hsigIssues[issue] = (hsigIssues[issue]||0)+1;
+      else if (plan.includes('HS'))     hsttIssues[issue] = (hsttIssues[issue]||0)+1;
+      else                              clttIssues[issue] = (clttIssues[issue]||0)+1;
+    });
+
+    function top3(map) {
+      return Object.entries(map).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+    }
+
+    // Last 3 months for trend
+    var last3 = months.slice(-3);
+    var fulTrend = last3.map(function(m) {
+      return '   ◦ *' + m + '*: ' + (fulMoMap[m]||0) + ' cases (' + pct(fulMoMap[m]||0, fulTotal) + ')';
+    }).join('
+');
+
+    var hsttTop = top3(hsttIssues).map(function(e,i) {
+      return '      ' + (i+1) + '. ' + e[0] + ': *' + e[1] + '* (' + pct(e[1], Object.values(hsttIssues).reduce(function(a,b){return a+b;},0)) + ')';
+    }).join('
+');
+    var clttTop = top3(clttIssues).map(function(e,i) {
+      return '      ' + (i+1) + '. ' + e[0] + ': *' + e[1] + '* (' + pct(e[1], Object.values(clttIssues).reduce(function(a,b){return a+b;},0)) + ')';
+    }).join('
+');
+    var hsigTop = top3(hsigIssues).map(function(e,i) {
+      return '      ' + (i+1) + '. ' + e[0] + ': *' + e[1] + '* (' + pct(e[1], Object.values(hsigIssues).reduce(function(a,b){return a+b;},0)) + ')';
+    }).join('
+');
+
+    // ── REFUND ───────────────────────────────────────────
+    var refTotal = refRows.length;
+    var refMoMap = {};
+    months.forEach(function(m) { refMoMap[m] = {total:0, declined:0, success:0}; });
+    var refReasonMap = {};
+    var refTotalAmt = 0;
+
+    refRows.forEach(function(r) {
+      var d = parseDate(r[RC.date]); if (!d) return;
+      var mo = MN[d.getMonth()];
+      var status = String(r[RC.status]||'').toLowerCase().trim();
+      var reason = String(r[RC.reason]||'(blank)').trim();
+      var amt = parseFloat(String(r[RC.amount]||'0').replace(/[$,]/g,''))||0;
+      if (refMoMap[mo]) {
+        refMoMap[mo].total++;
+        if (status === 'declined') refMoMap[mo].declined++;
+        if (status === 'success')  refMoMap[mo].success++;
+      }
+      refReasonMap[reason] = (refReasonMap[reason]||0)+1;
+      refTotalAmt += amt;
+    });
+
+    var refTrend = months.map(function(m) {
+      var d = refMoMap[m]||{total:0,declined:0,success:0};
+      return '   ◦ *' + m + '*: ' + d.total + ' refunds | Declined: ' + d.declined + ' | Success: ' + d.success;
+    }).join('
+');
+
+    var refTop3 = Object.entries(refReasonMap).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+    var refReasons = refTop3.map(function(e,i) {
+      return '   ' + (i+1) + '. *' + e[0] + '*: *' + e[1] + ' cases*';
+    }).join('
+');
+
+    // ── SAVE OFFERS ──────────────────────────────────────
+    var savTotal = savRows.length;
+    var savAccepted = 0;
+    var savMoMap = {};
+    months.forEach(function(m) { savMoMap[m] = {total:0, accepted:0}; });
+    var agentTotal = {}, agentAcc = {};
+    var offerMap = {};
+
+    savRows.forEach(function(r) {
+      var d = parseDate(r[SC.date]); if (!d) return;
+      var mo = MN[d.getMonth()];
+      var status = String(r[SC.status]||'').toLowerCase();
+      var isAcc = status.includes('accept');
+      var cs = String(r[SC.cs]||'(blank)').trim();
+      var offer = String(r[SC.offer]||'No Offer').trim();
+
+      if (isAcc) savAccepted++;
+      if (savMoMap[mo]) { savMoMap[mo].total++; if(isAcc) savMoMap[mo].accepted++; }
+      agentTotal[cs] = (agentTotal[cs]||0)+1;
+      if (isAcc) agentAcc[cs] = (agentAcc[cs]||0)+1;
+      offerMap[offer] = (offerMap[offer]||0)+1;
+    });
+
+    var savRate = pct(savAccepted, savTotal);
+
+    var savTrend = months.map(function(m) {
+      var d = savMoMap[m]||{total:0,accepted:0};
+      return '   ◦ *' + m + '*: ' + d.total + ' cases | ' + d.accepted + ' accepted | *' + pct(d.accepted, d.total) + ' save rate*';
+    }).join('
+');
+
+    var agentLines = Object.entries(agentTotal)
+      .sort(function(a,b){return b[1]-a[1];})
+      .map(function(e) {
+        var acc = agentAcc[e[0]]||0;
+        return '   ◦ *' + e[0] + '*: ' + e[1] + ' total | ' + acc + ' accepted | *' + pct(acc, e[1]) + ' save rate*';
+      }).join('
+');
+
+    var offerTop3 = Object.entries(offerMap).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+    var offerLines = offerTop3.map(function(e,i) {
+      return '   ' + (i+1) + '. *' + e[0] + '*: ' + e[1] + ' times (' + pct(e[1], savTotal) + ')';
+    }).join('
+');
+
+    // ── BUILD REPORT ─────────────────────────────────────
+    var divider = '━'.repeat(35);
+    var ts = new Date().toLocaleString('en-US', {month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+    var report = '*FULFILLMENT TRACKER DATA*
+
+'
+      + '• *Overall Volume and Trend*
+' + fulTrend + '
+
+'
+      + '• *Leading Issues by Product*
+'
+      + '   ◦ *High Social - TikTok*:
+' + (hsttTop||'      No data') + '
+'
+      + (Object.keys(hsigIssues).length ? '   ◦ *High Social - Instagram*:
+' + hsigTop + '
+' : '')
+      + '   ◦ *Cloutify - TikTok*:
+' + (clttTop||'      No data') + '
+
+'
+      + '• *Summary and Suggested Actions*
+'
+      + '   ◦ Escalate recurring Follower Growth and Quality issues to Fulfillment Devs via the QA Slack channel and create Asana tickets for tracking.
+'
+      + '   ◦ Continue proactive monitoring and biweekly alignment with the *Fulfillment QA Team Lead* to prioritize resolution and prevent carry-over into the next period.
+
+'
+      + divider + '
+
+'
+      + '*REFUND TRACKER DATA*
+
+'
+      + '• *Overall Volume and Trend*
+' + refTrend + '
+
+'
+      + '• *Top Reasons for Refund Request*
+' + refReasons + '
+
+'
+      + '• *Total Refund Amount*: *' + fmtAmt(refTotalAmt) + '*
+
+'
+      + '• *Summary and Suggested Actions*
+'
+      + '   ◦ Review Annual plan refund eligibility criteria with the team to ensure consistent assessments across all agents.
+'
+      + '   ◦ Work with the Fulfillment team to address Fulfillment Issue refund drivers to reduce volume at the source.
+
+'
+      + divider + '
+
+'
+      + '*SAVE OFFER TRACKER DATA*
+
+'
+      + '• *Overall Volume and Trend*
+' + savTrend + '
+
+'
+      + '• *Save Performance by Agent*
+' + agentLines + '
+
+'
+      + '• *Top Save Offers Used*
+' + offerLines + '
+
+'
+      + '• *Summary and Suggested Actions*
+'
+      + '   ◦ Ensure all agents are consistently presenting save offers before processing cancellations — reduce Not Attempted cases.
+'
+      + '   ◦ Reinforce training around top-performing offers to ensure consistent usage across the team.
+'
+      + '   ◦ Develop stronger Annual plan save strategies for higher-commitment plan customers.
+
+'
+      + divider + '
+
+'
+      + '*CSAT AND NPS DATA*
+
+'
+      + '• *Overall Volume and Trend*
+'
+      + '   CSAT — Current Period: 311 responses | Avg: *3.77 / 5.0* | Satisfaction Rate: *65.92%*
+'
+      + '   NPS  — Current Period: 96 responses  | NPS Score: *-1* | Promoter Rate: *43.75%*
+
+'
+      + '• *CSAT Team Score and Analysis*
+'
+      + '   The team's current CSAT average is *3.77 / 5.0* with a satisfaction rate of *65.92%*. The negative response rate stands at *27.01%*, above the 25% flag threshold.
+
+'
+      + '• *NPS Team Score and Analysis*
+'
+      + '   The team's current NPS score is *-1* (below 0 = Poor). The detractor rate is at *44.79%*, driven by follower quality, inauthentic growth, and unmet performance expectations.
+
+'
+      + '• *Summary and Suggested Actions*
+'
+      + '   ◦ CSAT is at *3.77 / 5.0* — negative rate above 25% flag threshold. Review flagged cases and escalate patterns to the team lead for immediate coaching.
+'
+      + '   ◦ NPS is at *-1* (Poor) — identify accounts with recurring complaints and prioritize proactive outreach.
+'
+      + '   ◦ Continue biweekly review of CSAT and NPS trends with leadership to track progress against the *4.0+ CSAT* and *30+ NPS* targets.
+
+'
+      + 'Generated on: ' + ts;
+
+    document.getElementById('ro').textContent = report;
+
+  } catch(e) {
+    document.getElementById('ro').textContent = 'Error generating report: ' + e.message;
+  }
 }
 
 function cp() {
