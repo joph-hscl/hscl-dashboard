@@ -436,15 +436,22 @@ function sortDesc(map, total) {
 }
 
 function tbl(hdrs, rows, opts={}) {
-  const thAlign = hdrs.map((_,i) => i===0 ? 'left' : 'right');
-  let h = `<table><thead><tr>${hdrs.map((h,i) => `<th style="text-align:${thAlign[i]}">${h}</th>`).join('')}</tr></thead><tbody>`;
-  rows.forEach((r, ri) => {
-    const cls = r._gt ? ' class="gt"' : (r._cls ? ` class="${r._cls}"` : '');
-    h += `<tr${cls}>${r.filter ? r.filter((_,i) => i < hdrs.length) : r.slice(0, hdrs.length).map((v,i) => {
-      const al = thAlign[i] || 'right';
-      const isp = (typeof v === 'string' && v.endsWith('%') && i > 0);
-      return `<td style="text-align:${al}"${isp?' class="p"':''}>${v}</td>`;
-    }).join('')}</tr>`;
+  const nc = hdrs.length;
+  let h = '<table><thead><tr>';
+  hdrs.forEach((hd, i) => {
+    h += `<th style="text-align:${i===0?'left':'right'}">${hd}</th>`;
+  });
+  h += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    const isGT = r._gt === true;
+    h += `<tr${isGT?' class="gt"':''}>`;
+    for (let i = 0; i < nc; i++) {
+      const v = (r[i] === undefined || r[i] === null) ? '' : r[i];
+      const al = i === 0 ? 'left' : 'right';
+      const isPct = typeof v === 'string' && v.endsWith('%') && i > 0;
+      h += `<td style="text-align:${al}"${isPct?' class="p"':''}>${v}</td>`;
+    }
+    h += '</tr>';
   });
   return h + '</tbody></table>';
 }
