@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HS/CL Report Dashboard (V1)</title>
+<style>
+:root {
+  --navy:#1F3864; --blue:#2E75B6; --teal:#1a5276;
+  --green-bg:#E2EFDA; --green-fg:#274E13; --green-border:#b7d7a8;
+  --amber:#FFF2CC; --amber-border:#cca800; --amber-fg:#7d6100;
+  --red-bg:#FCE4D6; --red-border:#e8a090; --red-fg:#c0392b;
+  --yellow:#FFD966; --grey:#F5F5F5; --grey-mid:#D9D9D9;
+  --border:#CCCCCC; --white:#FFFFFF; --text:#1a1a2e; --muted:#666;
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:#eef0f4;color:var(--text);font-size:13px;line-height:1.5}
+
+/* NAV */
+.topbar{background:var(--navy);height:50px;display:flex;align-items:center;padding:0 16px;gap:0;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.logo{color:var(--yellow);font-weight:800;font-size:14px;letter-spacing:.3px;white-space:nowrap;margin-right:24px;flex-shrink:0}
+.tabs{display:flex;overflow-x:auto;flex:1;gap:1px}
+.tabs::-webkit-scrollbar{height:3px}
+.tabs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:2px}
+.tab{background:transparent;color:rgba(255,255,255,.65);border:none;border-bottom:3px solid transparent;padding:0 14px;height:50px;cursor:pointer;font:500 11.5px/1 var(--font);white-space:nowrap;transition:all .15s}
+.tab:hover{color:#fff;background:rgba(255,255,255,.07)}
+.tab.on{color:var(--yellow);border-bottom-color:var(--yellow)}
+
+/* PAGES */
+.page{display:none}.page.on{display:block}
+.wrap{max-width:1440px;margin:0 auto;padding:18px 18px 40px}
+
+/* PAGE HEADER */
+.ph{background:var(--navy);color:#fff;text-align:center;padding:14px 20px 10px;border-radius:6px 6px 0 0}
+.ph h1{font-size:17px;font-weight:800;letter-spacing:.6px;color:var(--yellow);text-transform:uppercase}
+.ph .sub{font-size:10.5px;color:rgba(255,255,255,.7);margin-top:3px}
+.filter-bar{background:var(--blue);color:#fff;padding:7px 16px;font-size:11px;font-weight:700;text-align:center;letter-spacing:.2px}
+.filter-row{background:#fff;border:1px solid var(--border);border-top:none;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fl{font-weight:700;font-size:11px;color:var(--navy)}
+.fi{background:var(--yellow);border:1.5px solid var(--amber-border);border-radius:3px;padding:4px 10px;font:600 12px/1.4 var(--font);width:128px;text-align:center;cursor:pointer}
+.fi:focus{outline:2px solid var(--blue)}
+.fa{font-size:15px;color:var(--muted)}
+.fhint{font-size:10px;color:var(--muted);margin-left:auto}
+.showing{background:var(--green-bg);color:var(--green-fg);border:1px solid var(--green-border);border-top:none;padding:6px 16px;font-size:11px;font-weight:700;margin-bottom:16px}
+
+/* SECTIONS */
+.sh{background:var(--blue);color:#fff;padding:7px 12px;font-size:10.5px;font-weight:700;border-radius:4px 4px 0 0;letter-spacing:.4px;text-transform:uppercase;margin-top:16px}
+.sh.navy{background:var(--navy)}
+.tw{background:#fff;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;overflow:hidden}
+
+/* TILES */
+.tiles{background:#fff;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;display:flex;gap:10px;padding:12px;flex-wrap:wrap}
+.tile{flex:1;min-width:110px;border:1px solid var(--border);border-radius:4px;padding:10px 12px;text-align:center;background:var(--grey)}
+.tile .tl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:5px}
+.tile .tv{font-size:22px;font-weight:800;color:var(--navy);line-height:1}
+.tile.g{background:var(--green-bg);border-color:var(--green-border)}.tile.g .tv{color:var(--green-fg)}
+.tile.r{background:var(--red-bg);border-color:var(--red-border)}.tile.r .tv{color:var(--red-fg)}
+.tile.a{background:var(--amber);border-color:var(--amber-border)}.tile.a .tv{color:var(--amber-fg)}
+.tile.b{background:#e8f4fb;border-color:#aed6f1}.tile.b .tv{color:var(--teal)}
+.tile .ts{font-size:9.5px;color:var(--muted);margin-top:3px}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+thead tr{background:var(--navy);color:#fff}
+th{padding:7px 10px;text-align:left;font-weight:700;font-size:10.5px;letter-spacing:.2px;white-space:nowrap}
+th:not(:first-child){text-align:right}
+tbody tr:nth-child(even){background:var(--grey)}
+tbody tr:hover{background:#e4ecf8}
+td{padding:5px 10px;border-bottom:1px solid #eee}
+td:not(:first-child){text-align:right}
+tr.gt{background:var(--grey-mid)!important;font-weight:700}
+.p{color:var(--muted)}
+.td-left td{text-align:left!important}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.sp{height:16px}
+
+/* BADGES */
+.bdg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.bg{background:var(--green-bg);color:var(--green-fg)}
+.br{background:var(--red-bg);color:var(--red-fg)}
+.ba{background:var(--amber);color:var(--amber-fg)}
+
+/* BAR ROWS */
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.blbl{width:110px;font-size:11px;font-weight:600;flex-shrink:0}
+.btrk{flex:1;height:15px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+.bfil{height:100%;border-radius:3px}
+.bfg{background:#27ae60}.bfr{background:#e74c3c}.bfa{background:#f39c12}
+.bnum{width:48px;text-align:right;font-size:11px;font-weight:700;flex-shrink:0}
+
+/* MINI BAR CHART */
+.bchart{display:flex;align-items:flex-end;gap:6px;padding:12px 12px 8px;background:#fff;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bbar{width:100%;border-radius:3px 3px 0 0;min-height:3px}
+.blb{font-size:9px;color:var(--muted);font-weight:600}
+.bvl{font-size:9px;font-weight:700;color:var(--navy)}
+
+/* SCORE HERO */
+.score-hero{background:#fff;border:1px solid var(--border);border-top:none;padding:16px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.sb{text-align:center;padding:14px 20px;border-radius:6px;border:2px solid var(--border);flex-shrink:0}
+.sb .n{font-size:44px;font-weight:900;line-height:1}
+.sb .l{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px}
+.sb.poor{background:var(--red-bg);border-color:var(--red-border)}.sb.poor .n{color:var(--red-fg)}
+.sb.avg{background:var(--amber);border-color:var(--amber-border)}.sb.avg .n{color:var(--amber-fg)}
+.sb.good{background:var(--green-bg);border-color:var(--green-border)}.sb.good .n{color:var(--green-fg)}
+
+/* COMMENT TABLE */
+.ctxt{max-width:440px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-style:italic;text-align:left!important}
+
+/* REPORT PAGE */
+.rout{background:#fff;border:1px solid var(--border);border-top:none;padding:18px;font-size:11.5px;line-height:1.8;white-space:pre-wrap;font-family:var(--font);min-height:300px;border-radius:0 0 4px 4px}
+.cpbtn{background:var(--blue);color:#fff;border:none;padding:8px 18px;border-radius:4px;font:600 12px/1 var(--font);cursor:pointer;margin-top:10px;transition:background .15s}
+.cpbtn:hover{background:var(--teal)}
+.cpok{color:var(--green-fg);font-size:11.5px;font-weight:700;margin-left:10px;display:none}
+.genbtn{background:#c0392b;color:#fff;border:none;padding:9px 22px;border-radius:4px;font:700 12.5px/1 var(--font);cursor:pointer;letter-spacing:.3px;transition:background .15s;flex-shrink:0}
+.genbtn:hover{background:#a93226}
+
+/* OVERFLOW TABLE WRAPPER */
+.ox{overflow-x:auto}
+
+/* NPS color helpers */
+.pos{color:#27ae60;font-weight:700}
+.neg{color:#e74c3c;font-weight:700}
+.neu{color:#e67e22;font-weight:700}
+
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+@media(max-width:600px){.logo{font-size:12px;margin-right:12px}.tab{padding:0 9px;font-size:10.5px}.wrap{padding:12px 10px 30px}.tile .tv{font-size:18px}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topbar">
+  <div class="logo">HS/CL Dashboard (V1)</div>
+  <div class="tabs">
+    <button class="tab on"  onclick="go('ful',this)">Dashboard - Fulfillment</button>
+    <button class="tab"     onclick="go('ref',this)">Dashboard - Refund</button>
+    <button class="tab"     onclick="go('sav',this)">Dashboard - Save Offers</button>
+    <button class="tab"     onclick="go('nps',this)">Dashboard - NPS</button>
+    <button class="tab"     onclick="go('cst',this)">Dashboard - CSAT</button>
+    <button class="tab"     onclick="go('rpt',this)">BiWeekly Report</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     FULFILLMENT
+══════════════════════════════════════════════════════ -->
+<div id="pg-ful" class="page on"><div class="wrap">
+  <div class="ph"><h1>Fulfillment Issues Dashboard</h1><div class="sub">Source: HS/CL Trackers - NEW (2026) &nbsp;|&nbsp; Last updated: Jun 18, 2026 01:56 PM</div></div>
+  <div class="filter-bar">DATE RANGE FILTER — Click a date cell to open the calendar picker, or type MM/DD/YYYY and press Enter.</div>
+  <div class="filter-row">
+    <span class="fl">Start Date</span>
+    <input type="date" class="fi" value="2026-01-01">
+    <span class="fa">→</span>
+    <input type="date" class="fi" value="2026-06-18">
+    <span class="fl">End Date</span>
+    <span class="fhint">Data shown reflects the full Jan–Jun 2026 dataset from the source tracker.</span>
+  </div>
+  <div class="showing">Showing: Jan 01, 2026 &nbsp; to &nbsp; Jun 18, 2026 &nbsp;|&nbsp; Total: 3,332 cases</div>
+
+  <div class="sh">Summary</div>
+  <div class="tiles">
+    <div class="tile"><div class="tl">Total Cases</div><div class="tv">3,332</div></div>
+    <div class="tile g"><div class="tl">Active</div><div class="tv">2,704</div></div>
+    <div class="tile r"><div class="tl">Terminated</div><div class="tv">241</div></div>
+    <div class="tile a"><div class="tl">Other</div><div class="tv">387</div></div>
+  </div>
+
+  <div class="sp"></div>
+  <div class="g3">
+    <div>
+      <div class="sh">High Social — TikTok Products | Issue Breakdown</div>
+      <div class="tw"><table>
+        <thead><tr><th>Issue</th><th>Count</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>Follower Growth - Slow</td><td>225</td><td class="p">17.32%</td></tr>
+          <tr><td>Follower Growth - Stalled/No Growth</td><td>182</td><td class="p">14.01%</td></tr>
+          <tr><td>Follower Quality - Poor</td><td>161</td><td class="p">12.39%</td></tr>
+          <tr><td>Follower Quality - Foreign</td><td>95</td><td class="p">7.31%</td></tr>
+          <tr><td>Follower Growth - Loss/Reduced</td><td>93</td><td class="p">7.16%</td></tr>
+          <tr><td>Views Growth - Slow</td><td>86</td><td class="p">6.62%</td></tr>
+          <tr><td>Views Growth - Stalled/No Growth</td><td>80</td><td class="p">6.16%</td></tr>
+          <tr><td>Views Quality - Poor</td><td>70</td><td class="p">5.39%</td></tr>
+          <tr><td>FREE - Slow or No Likes/Views/Comments</td><td>50</td><td class="p">3.85%</td></tr>
+          <tr><td>Likes Growth - Stalled/No Growth</td><td>49</td><td class="p">3.77%</td></tr>
+          <tr><td>Likes Growth - Slow</td><td>38</td><td class="p">2.93%</td></tr>
+          <tr><td>Engage Growth - No Engagement</td><td>37</td><td class="p">2.85%</td></tr>
+          <tr><td>Likes Quality - Poor</td><td>27</td><td class="p">2.08%</td></tr>
+          <tr><td>Likes Growth - Loss/Reduced</td><td>19</td><td class="p">1.46%</td></tr>
+          <tr><td>Comments Growth - Slow</td><td>18</td><td class="p">1.39%</td></tr>
+          <tr><td>Comments Quality - Poor/Unrelated</td><td>15</td><td class="p">1.15%</td></tr>
+          <tr><td>Views Growth - Loss/Reduced</td><td>13</td><td class="p">1.00%</td></tr>
+          <tr><td>Comments Growth - Stalled/No Growth</td><td>11</td><td class="p">0.85%</td></tr>
+          <tr><td>Likes Growth - Surge/Spike</td><td>8</td><td class="p">0.62%</td></tr>
+          <tr><td>Follower Growth - Surge/Spike</td><td>5</td><td class="p">0.38%</td></tr>
+          <tr><td>FREE - Loss Or Reduced Likes/Views</td><td>5</td><td class="p">0.38%</td></tr>
+          <tr><td>FREE - Low Quality (Bot/Fake/Foreign)</td><td>4</td><td class="p">0.31%</td></tr>
+          <tr><td>Boost - Slow Growth</td><td>3</td><td class="p">0.23%</td></tr>
+          <tr><td>Follower Growth - Stop Fulfillment Request</td><td>2</td><td class="p">0.15%</td></tr>
+          <tr><td>FREE - Surge/Spike</td><td>2</td><td class="p">0.15%</td></tr>
+          <tr><td>Boost Follower - Not Working/No Growth</td><td>1</td><td class="p">0.08%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>1,299</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">High Social — Instagram Products | Issue Breakdown</div>
+      <div class="tw"><table>
+        <thead><tr><th>Issue</th><th>Count</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>Follower Growth - Stalled/No Growth</td><td>35</td><td class="p">31.82%</td></tr>
+          <tr><td>Follower Growth - Slow</td><td>29</td><td class="p">26.36%</td></tr>
+          <tr><td>Follower Quality - Poor</td><td>22</td><td class="p">20.00%</td></tr>
+          <tr><td>Follower Quality - Foreign</td><td>11</td><td class="p">10.00%</td></tr>
+          <tr><td>Follower Growth - Loss/Reduced</td><td>8</td><td class="p">7.27%</td></tr>
+          <tr><td>FREE - Slow or No Likes/Views/Comments</td><td>3</td><td class="p">2.73%</td></tr>
+          <tr><td>Engage Growth - No Engagement</td><td>1</td><td class="p">0.91%</td></tr>
+          <tr><td>Views Growth - Slow</td><td>1</td><td class="p">0.91%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>110</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Cloutify — TikTok Products | Issue Breakdown</div>
+      <div class="tw"><table>
+        <thead><tr><th>Issue</th><th>Count</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>Follower Growth - Slow</td><td>373</td><td class="p">19.54%</td></tr>
+          <tr><td>Follower Quality - Poor</td><td>308</td><td class="p">16.13%</td></tr>
+          <tr><td>Follower Quality - Foreign</td><td>263</td><td class="p">13.78%</td></tr>
+          <tr><td>Follower Growth - Stalled/No Growth</td><td>237</td><td class="p">12.41%</td></tr>
+          <tr><td>Follower Growth - Loss/Reduced</td><td>147</td><td class="p">7.70%</td></tr>
+          <tr><td>FREE - Slow or No Likes/Views/Comments</td><td>114</td><td class="p">5.97%</td></tr>
+          <tr><td>Views Growth - Slow</td><td>73</td><td class="p">3.82%</td></tr>
+          <tr><td>Views Growth - Stalled/No Growth</td><td>45</td><td class="p">2.36%</td></tr>
+          <tr><td>Engage Growth - No Engagement</td><td>42</td><td class="p">2.20%</td></tr>
+          <tr><td>Likes Growth - Loss/Reduced</td><td>35</td><td class="p">1.83%</td></tr>
+          <tr><td>FREE - Loss Or Reduced Likes/Views</td><td>31</td><td class="p">1.62%</td></tr>
+          <tr><td>Likes Growth - Stalled/No Growth</td><td>29</td><td class="p">1.52%</td></tr>
+          <tr><td>Likes Growth - Slow</td><td>29</td><td class="p">1.52%</td></tr>
+          <tr><td>FREE - Low Quality (Bot/Fake/Foreign)</td><td>27</td><td class="p">1.41%</td></tr>
+          <tr><td>Likes Quality - Poor</td><td>26</td><td class="p">1.36%</td></tr>
+          <tr><td>Views Quality - Poor</td><td>22</td><td class="p">1.15%</td></tr>
+          <tr><td>Comments Growth - Slow</td><td>22</td><td class="p">1.15%</td></tr>
+          <tr><td>Likes Growth - Surge/Spike</td><td>21</td><td class="p">1.10%</td></tr>
+          <tr><td>Views Growth - Loss/Reduced</td><td>19</td><td class="p">1.00%</td></tr>
+          <tr><td>Comments Quality - Poor/Unrelated</td><td>11</td><td class="p">0.58%</td></tr>
+          <tr><td>Boost Follower - Not Working/No Growth</td><td>6</td><td class="p">0.31%</td></tr>
+          <tr><td>FREE - Surge/Spike</td><td>5</td><td class="p">0.26%</td></tr>
+          <tr><td>Follower Growth - Surge/Spike</td><td>4</td><td class="p">0.21%</td></tr>
+          <tr><td>Boost Videos - Loss/Reduced</td><td>4</td><td class="p">0.21%</td></tr>
+          <tr><td>Comments Growth - Stalled/No Growth</td><td>7</td><td class="p">0.37%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>1,909</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Category x Month matrices -->
+  <div class="sh" style="margin-top:16px">High Social — TikTok | Issues by Category &amp; Month</div>
+  <div class="tw ox"><table>
+    <thead><tr><th>Issue Category</th><th>JAN</th><th>FEB</th><th>MAR</th><th>APR</th><th>MAY</th><th>JUN</th><th>Total</th></tr></thead>
+    <tbody>
+      <tr><td>1. Follower Growth</td><td>101</td><td>51</td><td>45</td><td>72</td><td>152</td><td>86</td><td><b>507</b></td></tr>
+      <tr><td>2. Follower Quality</td><td>58</td><td>29</td><td>56</td><td>46</td><td>49</td><td>18</td><td><b>256</b></td></tr>
+      <tr><td>3. Likes Growth</td><td>26</td><td>22</td><td>12</td><td>26</td><td>23</td><td>5</td><td><b>114</b></td></tr>
+      <tr><td>4. Likes Quality</td><td>13</td><td>0</td><td>7</td><td>4</td><td>2</td><td>1</td><td><b>27</b></td></tr>
+      <tr><td>5. Views Growth</td><td>37</td><td>32</td><td>22</td><td>26</td><td>47</td><td>15</td><td><b>179</b></td></tr>
+      <tr><td>6. Views Quality</td><td>25</td><td>18</td><td>6</td><td>9</td><td>11</td><td>1</td><td><b>70</b></td></tr>
+      <tr><td>7. Comments Growth</td><td>10</td><td>9</td><td>3</td><td>5</td><td>1</td><td>1</td><td><b>29</b></td></tr>
+      <tr><td>8. Comments Quality</td><td>8</td><td>2</td><td>2</td><td>2</td><td>0</td><td>1</td><td><b>15</b></td></tr>
+      <tr><td>9. Engage Growth</td><td>11</td><td>8</td><td>4</td><td>2</td><td>9</td><td>3</td><td><b>37</b></td></tr>
+      <tr><td>10. Boost Follower Issue</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td><b>1</b></td></tr>
+      <tr><td>11. Boost Videos Issue</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>2</td><td><b>3</b></td></tr>
+      <tr><td>12. Complimentary</td><td>11</td><td>8</td><td>7</td><td>11</td><td>22</td><td>2</td><td><b>61</b></td></tr>
+      <tr><td>Other</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td><b>0</b></td></tr>
+      <tr class="gt"><td>Grand Total</td><td>300</td><td>179</td><td>165</td><td>204</td><td>316</td><td>135</td><td>1,299</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sh" style="margin-top:16px">High Social — Instagram | Issues by Category &amp; Month</div>
+  <div class="tw ox"><table>
+    <thead><tr><th>Issue Category</th><th>JAN</th><th>FEB</th><th>MAR</th><th>APR</th><th>MAY</th><th>JUN</th><th>Total</th></tr></thead>
+    <tbody>
+      <tr><td>1. Follower Growth</td><td>28</td><td>14</td><td>5</td><td>8</td><td>14</td><td>3</td><td><b>72</b></td></tr>
+      <tr><td>2. Follower Quality</td><td>8</td><td>8</td><td>11</td><td>2</td><td>3</td><td>1</td><td><b>33</b></td></tr>
+      <tr><td>5. Views Growth</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td><b>1</b></td></tr>
+      <tr><td>9. Engage Growth</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td><b>1</b></td></tr>
+      <tr><td>12. Complimentary</td><td>0</td><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td><b>3</b></td></tr>
+      <tr class="gt"><td>Grand Total</td><td>36</td><td>22</td><td>18</td><td>12</td><td>18</td><td>4</td><td>110</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sh" style="margin-top:16px">Cloutify — TikTok | Issues by Category &amp; Month</div>
+  <div class="tw ox"><table>
+    <thead><tr><th>Issue Category</th><th>JAN</th><th>FEB</th><th>MAR</th><th>APR</th><th>MAY</th><th>JUN</th><th>Total</th></tr></thead>
+    <tbody>
+      <tr><td>1. Follower Growth</td><td>43</td><td>28</td><td>73</td><td>131</td><td>283</td><td>204</td><td><b>762</b></td></tr>
+      <tr><td>2. Follower Quality</td><td>74</td><td>94</td><td>97</td><td>96</td><td>135</td><td>75</td><td><b>571</b></td></tr>
+      <tr><td>3. Likes Growth</td><td>4</td><td>0</td><td>22</td><td>38</td><td>35</td><td>15</td><td><b>114</b></td></tr>
+      <tr><td>4. Likes Quality</td><td>0</td><td>1</td><td>7</td><td>12</td><td>2</td><td>4</td><td><b>26</b></td></tr>
+      <tr><td>5. Views Growth</td><td>4</td><td>2</td><td>29</td><td>45</td><td>45</td><td>12</td><td><b>137</b></td></tr>
+      <tr><td>6. Views Quality</td><td>0</td><td>0</td><td>7</td><td>6</td><td>4</td><td>5</td><td><b>22</b></td></tr>
+      <tr><td>7. Comments Growth</td><td>0</td><td>0</td><td>7</td><td>4</td><td>10</td><td>8</td><td><b>29</b></td></tr>
+      <tr><td>8. Comments Quality</td><td>0</td><td>0</td><td>3</td><td>4</td><td>3</td><td>1</td><td><b>11</b></td></tr>
+      <tr><td>9. Engage Growth</td><td>0</td><td>1</td><td>15</td><td>11</td><td>9</td><td>6</td><td><b>42</b></td></tr>
+      <tr><td>10. Boost Follower Issue</td><td>1</td><td>0</td><td>2</td><td>1</td><td>1</td><td>3</td><td><b>8</b></td></tr>
+      <tr><td>11. Boost Videos Issue</td><td>0</td><td>0</td><td>0</td><td>2</td><td>4</td><td>1</td><td><b>7</b></td></tr>
+      <tr><td>12. Complimentary</td><td>12</td><td>6</td><td>12</td><td>33</td><td>80</td><td>32</td><td><b>175</b></td></tr>
+      <tr><td>Other</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td><b>1</b></td></tr>
+      <tr class="gt"><td>Grand Total</td><td>138</td><td>132</td><td>274</td><td>384</td><td>611</td><td>366</td><td>1,905</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sp"></div>
+  <div class="g2">
+    <div>
+      <div class="sh">Cases by CS Agent</div>
+      <div class="tw"><table>
+        <thead><tr><th>CS Agent</th><th>Cases</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>Polly</td><td>794</td><td class="p">23.83%</td></tr>
+          <tr><td>Rosie</td><td>624</td><td class="p">18.73%</td></tr>
+          <tr><td>Sam</td><td>559</td><td class="p">16.78%</td></tr>
+          <tr><td>Cha-Cha</td><td>500</td><td class="p">15.01%</td></tr>
+          <tr><td>Christine</td><td>416</td><td class="p">12.48%</td></tr>
+          <tr><td>Rocky</td><td>377</td><td class="p">11.31%</td></tr>
+          <tr><td>Rafael</td><td>47</td><td class="p">1.41%</td></tr>
+          <tr><td>(blank)</td><td>15</td><td class="p">0.45%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>3,332</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Cases by Plan Type</div>
+      <div class="tw"><table>
+        <thead><tr><th>Plan Type</th><th>Cases</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>CL Premium</td><td>804</td><td class="p">24.13%</td></tr>
+          <tr><td>CL Standard</td><td>437</td><td class="p">13.12%</td></tr>
+          <tr><td>HS TikTok Elite</td><td>412</td><td class="p">12.36%</td></tr>
+          <tr><td>HS TikTok Viral</td><td>235</td><td class="p">7.05%</td></tr>
+          <tr><td>HS TikTok Expert</td><td>178</td><td class="p">5.34%</td></tr>
+          <tr><td>HS TikTok Core</td><td>178</td><td class="p">5.34%</td></tr>
+          <tr><td>CL Viral Addon</td><td>144</td><td class="p">4.32%</td></tr>
+          <tr><td>HS TikTok Likes</td><td>134</td><td class="p">4.02%</td></tr>
+          <tr><td>CL Engage Addon</td><td>110</td><td class="p">3.30%</td></tr>
+          <tr><td>CL Expert</td><td>108</td><td class="p">3.24%</td></tr>
+          <tr><td>HS TikTok Engage</td><td>106</td><td class="p">3.18%</td></tr>
+          <tr><td>CL Likes Addon</td><td>103</td><td class="p">3.09%</td></tr>
+          <tr><td>CL FREE Likes and Boost</td><td>76</td><td class="p">2.28%</td></tr>
+          <tr><td>HS IG Elite</td><td>49</td><td class="p">1.47%</td></tr>
+          <tr><td>TikTok FREE Likes and Boost</td><td>46</td><td class="p">1.38%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-top:16px">
+    <div>
+      <div class="sh">Cases by Attempt Number</div>
+      <div class="tw"><table>
+        <thead><tr><th>Attempt</th><th>Cases</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>1st</td><td>2,020</td><td class="p">60.62%</td></tr>
+          <tr><td>2nd</td><td>648</td><td class="p">19.45%</td></tr>
+          <tr><td>3rd</td><td>291</td><td class="p">8.73%</td></tr>
+          <tr><td>4th</td><td>146</td><td class="p">4.38%</td></tr>
+          <tr><td>5th</td><td>82</td><td class="p">2.46%</td></tr>
+          <tr><td>6th</td><td>46</td><td class="p">1.38%</td></tr>
+          <tr><td>7th</td><td>28</td><td class="p">0.84%</td></tr>
+          <tr><td>8th</td><td>20</td><td class="p">0.60%</td></tr>
+          <tr><td>9th</td><td>15</td><td class="p">0.45%</td></tr>
+          <tr><td>10th+</td><td>16</td><td class="p">0.48%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>3,332</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Cases by Month</div>
+      <div class="tw"><table>
+        <thead><tr><th>Month</th><th>Cases</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>JAN</td><td>475</td><td class="p">14.26%</td></tr>
+          <tr><td>FEB</td><td>334</td><td class="p">10.02%</td></tr>
+          <tr><td>MAR</td><td>457</td><td class="p">13.72%</td></tr>
+          <tr><td>APR</td><td>600</td><td class="p">18.01%</td></tr>
+          <tr><td>MAY</td><td>947</td><td class="p">28.42%</td></tr>
+          <tr><td>JUN</td><td>519</td><td class="p">15.58%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>3,332</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+      <div class="bchart">
+        <div class="bc"><div class="bvl">475</div><div class="bbar" style="height:60px;background:#5b9bd5"></div><div class="blb">JAN</div></div>
+        <div class="bc"><div class="bvl">334</div><div class="bbar" style="height:42px;background:#5b9bd5"></div><div class="blb">FEB</div></div>
+        <div class="bc"><div class="bvl">457</div><div class="bbar" style="height:58px;background:#5b9bd5"></div><div class="blb">MAR</div></div>
+        <div class="bc"><div class="bvl">600</div><div class="bbar" style="height:76px;background:#5b9bd5"></div><div class="blb">APR</div></div>
+        <div class="bc"><div class="bvl">947</div><div class="bbar" style="height:120px;background:#c0392b"></div><div class="blb">MAY</div></div>
+        <div class="bc"><div class="bvl">519</div><div class="bbar" style="height:66px;background:#5b9bd5"></div><div class="blb">JUN</div></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════════════
+     REFUND
+══════════════════════════════════════════════════════ -->
+<div id="pg-ref" class="page"><div class="wrap">
+  <div class="ph"><h1>Refund Cases Dashboard</h1><div class="sub">Source: HS/CL Trackers - NEW (2026) &nbsp;|&nbsp; Last updated: Jun 18, 2026 01:57 PM</div></div>
+  <div class="filter-bar">DATE RANGE FILTER — Click a date cell to open the calendar picker, or type MM/DD/YYYY and press Enter.</div>
+  <div class="filter-row">
+    <span class="fl">Start Date</span><input type="date" class="fi" value="2026-01-01"><span class="fa">→</span><input type="date" class="fi" value="2026-06-18"><span class="fl">End Date</span>
+  </div>
+  <div class="showing">Showing: Jan 01, 2026 &nbsp;to&nbsp; Jun 17, 2026 &nbsp;|&nbsp; Total: 746 cases &nbsp;|&nbsp; Refund Amount: $126,746.39</div>
+
+  <div class="sh">Summary</div>
+  <div class="tiles">
+    <div class="tile"><div class="tl">Total Cases</div><div class="tv">746</div></div>
+    <div class="tile b"><div class="tl">Total Refund Amount</div><div class="tv" style="font-size:18px">$126,746.39</div></div>
+    <div class="tile g"><div class="tl">Success</div><div class="tv">666</div></div>
+    <div class="tile r"><div class="tl">Declined</div><div class="tv">67</div></div>
+    <div class="tile a"><div class="tl">Escalated</div><div class="tv">2</div></div>
+    <div class="tile a"><div class="tl">Pending</div><div class="tv">4</div></div>
+  </div>
+
+  <div class="sp"></div>
+  <div class="g2">
+    <div>
+      <div class="sh">Cases by Month and Refund Status</div>
+      <div class="tw"><table>
+        <thead><tr><th>Month</th><th>Declined</th><th>Escalated</th><th>Pending</th><th>Success</th><th>Total</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>JAN</td><td>0</td><td>1</td><td>0</td><td>106</td><td>107</td><td class="p">14.34%</td></tr>
+          <tr><td>FEB</td><td>3</td><td>0</td><td>0</td><td>102</td><td>105</td><td class="p">14.08%</td></tr>
+          <tr><td>MAR</td><td>0</td><td>1</td><td>0</td><td>135</td><td>137</td><td class="p">18.36%</td></tr>
+          <tr><td>APR</td><td>11</td><td>0</td><td>0</td><td>127</td><td>138</td><td class="p">18.50%</td></tr>
+          <tr><td>MAY</td><td>29</td><td>0</td><td>0</td><td>130</td><td>159</td><td class="p">21.31%</td></tr>
+          <tr><td>JUN</td><td>24</td><td>0</td><td>4</td><td>66</td><td>100</td><td class="p">13.40%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>67</td><td>2</td><td>4</td><td>666</td><td>746</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Refund Status Breakdown</div>
+      <div class="tw" style="padding:14px">
+        <div class="brow"><div class="blbl" style="color:var(--green-fg)">Success</div><div class="btrk"><div class="bfil bfg" style="width:89.28%"></div></div><div class="bnum">666 &nbsp;<span class="p">89.28%</span></div></div>
+        <div class="brow"><div class="blbl" style="color:var(--red-fg)">Declined</div><div class="btrk"><div class="bfil bfr" style="width:8.98%"></div></div><div class="bnum">67 &nbsp;<span class="p">8.98%</span></div></div>
+        <div class="brow"><div class="blbl" style="color:var(--amber-fg)">Pending</div><div class="btrk"><div class="bfil bfa" style="width:0.54%"></div></div><div class="bnum">4 &nbsp;<span class="p">0.54%</span></div></div>
+        <div class="brow"><div class="blbl" style="color:var(--amber-fg)">Escalated</div><div class="btrk"><div class="bfil bfa" style="width:0.27%"></div></div><div class="bnum">2 &nbsp;<span class="p">0.27%</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sh" style="margin-top:16px">Reason for Refund Request</div>
+  <div class="tw"><table>
+    <thead><tr><th>Reason</th><th>Cases</th><th>% Share</th></tr></thead>
+    <tbody>
+      <tr><td>Fulfillment Issue - Growth, Quality, Inauthentic, No Engagement, Performance</td><td>284</td><td class="p">38.07%</td></tr>
+      <tr><td>Pricing Format - Accidental Signup, Price Confusion, Misleading, Wrong Plan Selected</td><td>183</td><td class="p">24.53%</td></tr>
+      <tr><td>Personal Decision - Budget, Can't Afford, Changed Mind, No Longer Needed, Redirect Focus</td><td>117</td><td class="p">15.68%</td></tr>
+      <tr><td>Billing Concern - Duplicate, Recurring, Renewal, Upgrade/Downgrade</td><td>79</td><td class="p">10.59%</td></tr>
+      <tr><td>Other - No Reason, Specify on Comments</td><td>28</td><td class="p">3.75%</td></tr>
+      <tr><td>Fraud/Dispute - Alert, Dispute, Unauthorized Charge, Lost/Stolen, Card Testing</td><td>27</td><td class="p">3.62%</td></tr>
+      <tr><td>Brand Perception - Scam, Negative Image, Better Competitor, False Advertising</td><td>14</td><td class="p">1.88%</td></tr>
+      <tr><td>System Issue - Dashboard Error, Login Access, Poor Interface, Migration</td><td>13</td><td class="p">1.74%</td></tr>
+      <tr><td>(blank)</td><td>1</td><td class="p">0.13%</td></tr>
+      <tr class="gt"><td>Grand Total</td><td>746</td><td class="p">100.00%</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sp"></div><div class="g2">
+    <div>
+      <div class="sh">Eligibility Breakdown</div>
+      <div class="tw"><table>
+        <thead><tr><th>Eligibility Category</th><th>Cases</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>New Subs - Within 7 Days</td><td>405</td><td class="p">54.29%</td></tr>
+          <tr><td>Exception - Billing Dispute/Chargeback Tag</td><td>105</td><td class="p">14.08%</td></tr>
+          <tr><td>Exception - Airwallex</td><td>61</td><td class="p">8.18%</td></tr>
+          <tr><td>NOT Eligible</td><td>60</td><td class="p">8.04%</td></tr>
+          <tr><td>Others - CS Lead or Director Approved</td><td>32</td><td class="p">4.29%</td></tr>
+          <tr><td>Exception - AMEX</td><td>30</td><td class="p">4.02%</td></tr>
+          <tr><td>Renewal Subs - Within 14 Days</td><td>24</td><td class="p">3.22%</td></tr>
+          <tr><td>HS Error - Validated</td><td>11</td><td class="p">1.47%</td></tr>
+          <tr><td>Exception - Duplicate Charge</td><td>10</td><td class="p">1.34%</td></tr>
+          <tr><td>Exception - Int'l Mastercard Holder</td><td>3</td><td class="p">0.40%</td></tr>
+          <tr><td>Exception - UK/EU</td><td>3</td><td class="p">0.40%</td></tr>
+          <tr><td>System-Generated Refund</td><td>1</td><td class="p">0.13%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>746</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Cases by Plan Type</div>
+      <div class="tw"><table>
+        <thead><tr><th>Plan Type</th><th>Cases</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>CL Premium</td><td>197</td><td class="p">26.41%</td></tr>
+          <tr><td>CL Standard</td><td>122</td><td class="p">16.35%</td></tr>
+          <tr><td>HS TikTok Elite</td><td>72</td><td class="p">9.65%</td></tr>
+          <tr><td>HS TikTok Core</td><td>64</td><td class="p">8.58%</td></tr>
+          <tr><td>HS TikTok Viral</td><td>36</td><td class="p">4.83%</td></tr>
+          <tr><td>CL Viral Addon</td><td>33</td><td class="p">4.42%</td></tr>
+          <tr><td>HS TikTok Expert</td><td>31</td><td class="p">4.16%</td></tr>
+          <tr><td>HS TikTok Likes</td><td>31</td><td class="p">4.16%</td></tr>
+          <tr><td>CL Likes Addon</td><td>30</td><td class="p">4.02%</td></tr>
+          <tr><td>HS TikTok Engage</td><td>27</td><td class="p">3.62%</td></tr>
+          <tr><td>CL Engage Addon</td><td>24</td><td class="p">3.22%</td></tr>
+          <tr><td>CL Expert</td><td>17</td><td class="p">2.28%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="sh" style="margin-top:16px">Refund Amount by Plan Type</div>
+  <div class="tw"><table>
+    <thead><tr><th>Plan Type</th><th>Total Refund Amount</th></tr></thead>
+    <tbody>
+      <tr><td>CL Premium</td><td>$38,448.86</td></tr>
+      <tr><td>HS TikTok Elite</td><td>$19,432.54</td></tr>
+      <tr><td>CL Standard</td><td>$18,149.96</td></tr>
+      <tr><td>HS TikTok Expert</td><td>$15,362.29</td></tr>
+      <tr><td>HS TikTok Core</td><td>$8,462.00</td></tr>
+      <tr><td>HS IG Expert</td><td>$5,894.67</td></tr>
+      <tr><td>CL Expert</td><td>$5,542.95</td></tr>
+      <tr><td>HS TikTok Likes</td><td>$2,877.00</td></tr>
+      <tr><td>HS TikTok Viral</td><td>$2,725.00</td></tr>
+      <tr><td>HS TikTok Engage</td><td>$1,700.00</td></tr>
+      <tr><td>CL Viral Addon</td><td>$1,688.00</td></tr>
+      <tr><td>CL Likes Addon</td><td>$1,620.00</td></tr>
+      <tr><td>HS IG Elite</td><td>$1,534.00</td></tr>
+      <tr><td>HS IG Core</td><td>$997.00</td></tr>
+      <tr><td>CL Engage Addon</td><td>$966.00</td></tr>
+      <tr><td>CL Premium Lite</td><td>$414.00</td></tr>
+      <tr><td>CL Standard Lite</td><td>$294.00</td></tr>
+      <tr><td>CL Boost Videos</td><td>$170.00</td></tr>
+      <tr><td>HS TikTok Boost Videos</td><td>$110.00</td></tr>
+      <tr><td>CL Boost Followers</td><td>$100.00</td></tr>
+      <tr class="gt"><td><b>Grand Total</b></td><td><b>$126,746.39</b></td></tr>
+    </tbody>
+  </table></div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SAVE OFFERS
+══════════════════════════════════════════════════════ -->
+<div id="pg-sav" class="page"><div class="wrap">
+  <div class="ph"><h1>Save Offers Dashboard</h1><div class="sub">Source: HS/CL Trackers - NEW (2026) &nbsp;|&nbsp; Last updated: Jun 18, 2026 01:57 PM</div></div>
+  <div class="filter-bar">DATE RANGE FILTER — Click a date cell to open the calendar picker, or type MM/DD/YYYY and press Enter.</div>
+  <div class="filter-row">
+    <span class="fl">Start Date</span><input type="date" class="fi" value="2026-01-01"><span class="fa">→</span><input type="date" class="fi" value="2026-06-18"><span class="fl">End Date</span>
+  </div>
+  <div class="showing">Showing: Jan 01, 2026 &nbsp;to&nbsp; Jun 18, 2026 &nbsp;|&nbsp; Total: 1,623 cases &nbsp;|&nbsp; Save Rate: 20.83%</div>
+
+  <div class="sh">Summary</div>
+  <div class="tiles">
+    <div class="tile"><div class="tl">Total Cases</div><div class="tv">1,623</div></div>
+    <div class="tile g"><div class="tl">Accepted</div><div class="tv">338</div></div>
+    <div class="tile r"><div class="tl">Declined</div><div class="tv">1,214</div></div>
+    <div class="tile a"><div class="tl">Not Attempted</div><div class="tv">56</div></div>
+    <div class="tile a"><div class="tl">Pending</div><div class="tv">15</div></div>
+    <div class="tile b"><div class="tl">Save Rate</div><div class="tv">20.83%</div></div>
+  </div>
+
+  <div class="sp"></div>
+  <div class="g2">
+    <div>
+      <div class="sh">Save Performance by CS Agent</div>
+      <div class="tw"><table>
+        <thead><tr><th>CS Agent</th><th>Total</th><th>Accepted</th><th>Save Rate</th></tr></thead>
+        <tbody>
+          <tr><td>Polly</td><td>468</td><td>67</td><td>14.32%</td></tr>
+          <tr><td>Rosie</td><td>312</td><td>80</td><td>25.64%</td></tr>
+          <tr><td>Cha-Cha</td><td>256</td><td>58</td><td>22.66%</td></tr>
+          <tr><td>Sam</td><td>227</td><td>50</td><td>22.03%</td></tr>
+          <tr><td>Christine</td><td>189</td><td>49</td><td>25.93%</td></tr>
+          <tr><td>Rocky</td><td>143</td><td>24</td><td>16.78%</td></tr>
+          <tr><td>Rafael</td><td>26</td><td>9</td><td>34.62%</td></tr>
+          <tr><td>(blank)</td><td>2</td><td>1</td><td>50.00%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>1,623</td><td>338</td><td>20.83%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Monthly Trend and Save Rate</div>
+      <div class="tw"><table>
+        <thead><tr><th>Month</th><th>Total Cases</th><th>Accepted</th><th>Save Rate</th></tr></thead>
+        <tbody>
+          <tr><td>JAN</td><td>239</td><td>58</td><td>24.27%</td></tr>
+          <tr><td>FEB</td><td>229</td><td>55</td><td>24.02%</td></tr>
+          <tr><td>MAR</td><td>291</td><td>64</td><td>21.99%</td></tr>
+          <tr><td>APR</td><td>258</td><td>55</td><td>21.32%</td></tr>
+          <tr><td>MAY</td><td>360</td><td>60</td><td>16.67%</td></tr>
+          <tr><td>JUN</td><td>246</td><td>46</td><td>18.70%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>1,623</td><td>338</td><td>20.83%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="sp"></div><div class="g2">
+    <div>
+      <div class="sh">Save Offers Used</div>
+      <div class="tw"><table>
+        <thead><tr><th>Save Offer</th><th>Count</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>Offered Retention Discount (Free Month)</td><td>257</td><td class="p">15.83%</td></tr>
+          <tr><td>Offered Retention Discount (New Account - Next Month)</td><td>251</td><td class="p">15.47%</td></tr>
+          <tr><td>Downgraded to Monthly (50% Refund, 50% Credit)</td><td>240</td><td class="p">14.79%</td></tr>
+          <tr><td>Offered Retention Discount (Growth Boost)</td><td>202</td><td class="p">12.45%</td></tr>
+          <tr><td>Account Credit (Boost, Addons, Other Future Charges)</td><td>186</td><td class="p">11.46%</td></tr>
+          <tr><td>Resolved Customer Issue</td><td>123</td><td class="p">7.58%</td></tr>
+          <tr><td>Offered Retention Discount (Old Account - Next 3 Months)</td><td>113</td><td class="p">6.96%</td></tr>
+          <tr><td>Paused Subscription</td><td>68</td><td class="p">4.19%</td></tr>
+          <tr><td>Downgraded to Monthly (Difference Refunded)</td><td>54</td><td class="p">3.33%</td></tr>
+          <tr><td>No Save Offer Attempted (Specify Reason)</td><td>54</td><td class="p">3.33%</td></tr>
+          <tr><td>Reiterated Savings, Value, &amp; Benefits</td><td>37</td><td class="p">2.28%</td></tr>
+          <tr><td>Account Credit (Amount Refunded)</td><td>20</td><td class="p">1.23%</td></tr>
+          <tr><td>Other (Specify)</td><td>6</td><td class="p">0.37%</td></tr>
+          <tr><td>Negotiated Other Amount</td><td>5</td><td class="p">0.31%</td></tr>
+          <tr><td>Downgraded to Another Annual (Difference Refunded)</td><td>4</td><td class="p">0.25%</td></tr>
+          <tr><td>Upsell Other Products</td><td>3</td><td class="p">0.18%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Reason for Cancellation</div>
+      <div class="tw"><table>
+        <thead><tr><th>Reason</th><th>Count</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>Fulfillment Issue - Growth, Quality, Inauthentic, No Engagement, Performance</td><td>699</td><td class="p">43.07%</td></tr>
+          <tr><td>Personal Decision - Budget, Can't Afford, Changed Mind, No Longer Needed</td><td>461</td><td class="p">28.40%</td></tr>
+          <tr><td>Pricing Format - Accidental Signup, Price Confusion, Misleading</td><td>335</td><td class="p">20.64%</td></tr>
+          <tr><td>Billing Concern - Duplicate, Recurring, Renewal, Upgrade/Downgrade</td><td>53</td><td class="p">3.27%</td></tr>
+          <tr><td>Other - No Reason, Specify on Comments</td><td>37</td><td class="p">2.28%</td></tr>
+          <tr><td>Brand Perception - Scam, Negative Image, Better Competitor</td><td>17</td><td class="p">1.05%</td></tr>
+          <tr><td>Fraud/Dispute - Alert, Dispute, Unauthorized Charge</td><td>12</td><td class="p">0.74%</td></tr>
+          <tr><td>System Issue - Dashboard Error, Login Access, Poor Interface</td><td>7</td><td class="p">0.43%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>1,623</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="sp"></div><div class="g2">
+    <div>
+      <div class="sh">Subscription Type</div>
+      <div class="tw"><table>
+        <thead><tr><th>Subscription Type</th><th>Count</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>Renewal</td><td>813</td><td class="p">50.09%</td></tr>
+          <tr><td>New Signup</td><td>804</td><td class="p">49.54%</td></tr>
+          <tr><td>Other</td><td>6</td><td class="p">0.37%</td></tr>
+          <tr class="gt"><td>Grand Total</td><td>1,623</td><td class="p">100.00%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Cases by Plan Type</div>
+      <div class="tw"><table>
+        <thead><tr><th>Plan Type</th><th>Cases</th><th>% Share</th></tr></thead>
+        <tbody>
+          <tr><td>CL Premium</td><td>503</td><td class="p">30.99%</td></tr>
+          <tr><td>CL Standard</td><td>343</td><td class="p">21.13%</td></tr>
+          <tr><td>HS TikTok Elite</td><td>207</td><td class="p">12.75%</td></tr>
+          <tr><td>HS TikTok Core</td><td>177</td><td class="p">10.91%</td></tr>
+          <tr><td>HS TikTok Expert</td><td>74</td><td class="p">4.56%</td></tr>
+          <tr><td>CL Expert</td><td>50</td><td class="p">3.08%</td></tr>
+          <tr><td>HS TikTok Viral</td><td>45</td><td class="p">2.77%</td></tr>
+          <tr><td>HS TikTok Engage</td><td>34</td><td class="p">2.09%</td></tr>
+          <tr><td>CL Viral Addon</td><td>33</td><td class="p">2.03%</td></tr>
+          <tr><td>HS TikTok Likes</td><td>31</td><td class="p">1.91%</td></tr>
+          <tr><td>HS IG Core</td><td>18</td><td class="p">1.11%</td></tr>
+          <tr><td>HS IG Elite</td><td>18</td><td class="p">1.11%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════════════
+     NPS
+══════════════════════════════════════════════════════ -->
+<div id="pg-nps" class="page"><div class="wrap">
+  <div class="ph"><h1>NPS Dashboard &nbsp;|&nbsp; High Social</h1><div class="sub">Source: High Social - NPS (Zonka) &nbsp;|&nbsp; Last updated: Jun 18, 2026 01:02 PM</div></div>
+  <div class="filter-bar">DATE FILTER — Edit the yellow Start/End cells, then run Dashboard Builder &gt; Refresh NPS Dashboard.</div>
+  <div class="filter-row">
+    <span class="fl">Start Date</span><input type="date" class="fi" value="2026-01-01"><span class="fa">to</span><input type="date" class="fi" value="2026-06-18"><span class="fl">End Date</span>
+  </div>
+  <div class="showing">Showing: Jan 1, 2026 &nbsp;to&nbsp; Jun 18, 2026 &nbsp;|&nbsp; Matched: 96 responses &nbsp;|&nbsp; Total dataset: 1,029</div>
+
+  <div class="sh">Summary &nbsp;<span style="font-weight:400;text-transform:none">(Full dataset: Dec 13, 2023 to Jun 16, 2026)</span></div>
+  <div class="score-hero">
+    <div class="sb poor"><div class="n">-1</div><div class="l">NPS Score</div></div>
+    <div style="flex:1;min-width:220px">
+      <div class="brow"><div class="blbl" style="color:var(--green-fg)">Promoters (9-10)</div><div class="btrk"><div class="bfil bfg" style="width:43.75%"></div></div><div class="bnum">42 &nbsp;<span class="p">43.75%</span></div></div>
+      <div class="brow"><div class="blbl" style="color:var(--amber-fg)">Passives (7-8)</div><div class="btrk"><div class="bfil bfa" style="width:11.46%"></div></div><div class="bnum">11 &nbsp;<span class="p">11.46%</span></div></div>
+      <div class="brow"><div class="blbl" style="color:var(--red-fg)">Detractors (0-6)</div><div class="btrk"><div class="bfil bfr" style="width:44.79%"></div></div><div class="bnum">43 &nbsp;<span class="p">44.79%</span></div></div>
+    </div>
+    <div style="background:var(--amber);border:1px solid var(--amber-border);border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--amber-fg)">Avg Score (0-10)</div>
+      <div style="font-size:36px;font-weight:900;color:var(--amber-fg);line-height:1.1">5.99</div>
+    </div>
+    <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--red-fg)">Status</div>
+      <div style="font-size:22px;font-weight:900;color:var(--red-fg);line-height:1.2">Poor</div>
+      <div style="font-size:9.5px;color:var(--red-fg)">Target: 30+ (Good)</div>
+    </div>
+    <div style="background:#f0f4ff;border:1px solid #c5cde8;border-radius:6px;padding:10px 14px;font-size:10px;color:#333;line-height:1.8;min-width:160px">
+      <b>NPS Scale:</b><br>70+ = World-class<br>50–70 = Excellent<br>30–50 = Good<br>0–30 = Average<br><span style="color:var(--red-fg)">Below 0 = Poor ◀ current</span>
+    </div>
+  </div>
+
+  <div class="sp"></div><div class="g2">
+    <div>
+      <div class="sh">NPS Category Breakdown</div>
+      <div class="tw"><table>
+        <thead><tr><th>Category</th><th>Range</th><th>Count</th><th>% Share</th><th>NPS Impact</th></tr></thead>
+        <tbody>
+          <tr><td><span class="bdg bg">Promoters</span></td><td>9–10</td><td>42</td><td class="p">43.75%</td><td class="pos">+42</td></tr>
+          <tr><td><span class="bdg ba">Passives</span></td><td>7–8</td><td>11</td><td class="p">11.46%</td><td>0</td></tr>
+          <tr><td><span class="bdg br">Detractors</span></td><td>0–6</td><td>43</td><td class="p">44.79%</td><td class="neg">−43</td></tr>
+          <tr class="gt"><td colspan="2">Total / NPS</td><td>96</td><td class="p">100.00%</td><td class="neg">NPS = −1</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Monthly Trend</div>
+      <div class="tw"><table>
+        <thead><tr><th>Month</th><th>Total</th><th>Promoters</th><th>Passives</th><th>Detractors</th><th>NPS</th></tr></thead>
+        <tbody>
+          <tr><td>Jan 2026</td><td>12</td><td>7</td><td>1</td><td>4</td><td class="pos">+25</td></tr>
+          <tr><td>Feb 2026</td><td>17</td><td>7</td><td>2</td><td>8</td><td class="neg">−6</td></tr>
+          <tr><td>Mar 2026</td><td>10</td><td>6</td><td>1</td><td>3</td><td class="pos">+30</td></tr>
+          <tr><td>Apr 2026</td><td>10</td><td>4</td><td>1</td><td>5</td><td class="neg">−10</td></tr>
+          <tr><td>May 2026</td><td>5</td><td>1</td><td>0</td><td>4</td><td class="neg">−60</td></tr>
+          <tr><td>Jun 2026</td><td>42</td><td>17</td><td>6</td><td>19</td><td class="neg">−5</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="sp"></div><div class="g2">
+    <div>
+      <div class="sh">Score Distribution (0–10)</div>
+      <div class="tw"><table>
+        <thead><tr><th>Score</th><th>Count</th><th>% Share</th><th>Category</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>17</td><td class="p">17.71%</td><td><span class="bdg br">Detractor</span></td></tr>
+          <tr><td>1</td><td>7</td><td class="p">7.29%</td><td><span class="bdg br">Detractor</span></td></tr>
+          <tr><td>2</td><td>4</td><td class="p">4.17%</td><td><span class="bdg br">Detractor</span></td></tr>
+          <tr><td>3</td><td>5</td><td class="p">5.21%</td><td><span class="bdg br">Detractor</span></td></tr>
+          <tr><td>4</td><td>2</td><td class="p">2.08%</td><td><span class="bdg br">Detractor</span></td></tr>
+          <tr><td>5</td><td>7</td><td class="p">7.29%</td><td><span class="bdg br">Detractor</span></td></tr>
+          <tr><td>6</td><td>1</td><td class="p">1.04%</td><td><span class="bdg br">Detractor</span></td></tr>
+          <tr><td>7</td><td>6</td><td class="p">6.25%</td><td><span class="bdg ba">Passive</span></td></tr>
+          <tr><td>8</td><td>5</td><td class="p">5.21%</td><td><span class="bdg ba">Passive</span></td></tr>
+          <tr><td>9</td><td>6</td><td class="p">6.25%</td><td><span class="bdg bg">Promoter</span></td></tr>
+          <tr><td>10</td><td>36</td><td class="p">37.50%</td><td><span class="bdg bg">Promoter</span></td></tr>
+          <tr class="gt"><td>Total</td><td>96</td><td class="p">100.00%</td><td></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Top Detractor Themes (Score 0–6)</div>
+      <div class="tw"><table>
+        <thead><tr><th>Theme</th><th>Count</th><th>% of Detractors</th></tr></thead>
+        <tbody>
+          <tr><td>Other</td><td>10</td><td class="p">38.46%</td></tr>
+          <tr><td>Follower complaints</td><td>9</td><td class="p">34.62%</td></tr>
+          <tr><td>Growth complaints</td><td>4</td><td class="p">15.38%</td></tr>
+          <tr><td>Bot complaints</td><td>3</td><td class="p">11.54%</td></tr>
+          <tr><td>Bots complaints</td><td>2</td><td class="p">7.69%</td></tr>
+          <tr><td>Slow complaints</td><td>1</td><td class="p">3.85%</td></tr>
+          <tr><td>Cancel complaints</td><td>1</td><td class="p">3.85%</td></tr>
+          <tr><td>Foreign complaints</td><td>1</td><td class="p">3.85%</td></tr>
+          <tr><td>Refund complaints</td><td>1</td><td class="p">3.85%</td></tr>
+          <tr><td>Scam complaints</td><td>1</td><td class="p">3.85%</td></tr>
+          <tr><td>Fake complaints</td><td>1</td><td class="p">3.85%</td></tr>
+          <tr><td>Charge complaints</td><td>1</td><td class="p">3.85%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="sh" style="margin-top:16px">Recent Detractor Comments (Score 0–6) — Last 20</div>
+  <div class="tw ox"><table>
+    <thead><tr><th>Date</th><th>Score</th><th>Category</th><th style="text-align:left">Comment</th></tr></thead>
+    <tbody>
+      <tr><td>Jun 16, 2026</td><td>1</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">You guys have not given me any growth</td></tr>
+      <tr><td>Jun 15, 2026</td><td>6</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">It seems that there are a lot of bots. I have the like boost but not getting what I expected.</td></tr>
+      <tr><td>Jun 14, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">it just doesnt work as described</td></tr>
+      <tr><td>Jun 13, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">You just charged me double on both accounts this extremely frustrating..can someone please fix this?</td></tr>
+      <tr><td>Jun 11, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">I'm trying to be patient but so far these followers are all from non English speaking countries</td></tr>
+      <tr><td>Jun 11, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">Everything is fake, none of the growth sticks. Followers and likes for a few days before tik tok removes them</td></tr>
+      <tr><td>Jun 10, 2026</td><td>3</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">I don't think it's being seen by enough people. I post at least 100 videos a month...</td></tr>
+      <tr><td>Jun 7, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">Nothing changed</td></tr>
+      <tr><td>Jun 6, 2026</td><td>0</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">been paying for elite and not getting any more followers than if i didnt have plan</td></tr>
+      <tr><td>Jun 5, 2026</td><td>3</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">My follower growth is moving very slowly…</td></tr>
+      <tr><td>Jun 5, 2026</td><td>4</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">I am not getting the performance I expected.</td></tr>
+      <tr><td>Jun 2, 2026</td><td>5</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">Not seeing as much success as promised, and I have been on here for months</td></tr>
+      <tr><td>Jun 2, 2026</td><td>3</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">Likes are artificially gathered, followers are bots for the most part</td></tr>
+      <tr><td>May 9, 2026</td><td>5</td><td><span class="bdg br">Detractor</span></td><td class="ctxt">—</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sh" style="margin-top:16px">Biweekly Notes</div>
+  <div class="tiles">
+    <div class="tile"><div class="tl">Total NPS Responses</div><div class="tv">96</div><div class="ts">Higher = better sample</div></div>
+    <div class="tile r"><div class="tl">NPS Score</div><div class="tv">−1</div><div class="ts">Target: 30+ (Good)</div></div>
+    <div class="tile a"><div class="tl">Promoter Rate (9–10)</div><div class="tv">43.75%</div><div class="ts">Target: 50%+</div></div>
+    <div class="tile a"><div class="tl">Passive Rate (7–8)</div><div class="tv">11.46%</div><div class="ts">Potential promoters</div></div>
+    <div class="tile r"><div class="tl">Detractor Rate (0–6)</div><div class="tv">44.79%</div><div class="ts">Flag if above 40%</div></div>
+    <div class="tile a"><div class="tl">Top Issue Theme</div><div class="tv" style="font-size:14px">Other</div><div class="ts">Root cause for NPS dip</div></div>
+  </div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════════════
+     CSAT
+══════════════════════════════════════════════════════ -->
+<div id="pg-cst" class="page"><div class="wrap">
+  <div class="ph"><h1>CSAT Dashboard &nbsp;|&nbsp; High Social</h1><div class="sub">Source: High Social - CSAT (Zonka) &nbsp;|&nbsp; Last updated: Jun 18, 2026 01:02 PM</div></div>
+  <div class="filter-bar">DATE FILTER — Edit the yellow Start/End cells, then run Dashboard Builder &gt; Refresh CSAT Dashboard.</div>
+  <div class="filter-row">
+    <span class="fl">Start Date</span><input type="date" class="fi" value="2026-01-01"><span class="fa">to</span><input type="date" class="fi" value="2026-06-18"><span class="fl">End Date</span>
+  </div>
+  <div class="showing">Showing: Jan 1, 2026 &nbsp;to&nbsp; Jun 18, 2026 &nbsp;|&nbsp; Matched: 311 responses &nbsp;|&nbsp; Total dataset: 1,021</div>
+
+  <div class="sh">Summary &nbsp;<span style="font-weight:400;text-transform:none">(Full dataset: Dec 7, 2024 to Jun 16, 2026)</span></div>
+  <div class="score-hero">
+    <div class="sb avg"><div class="n">3.77</div><div class="l">CSAT Score / 5.0</div></div>
+    <div style="flex:1;min-width:220px">
+      <div class="brow"><div class="blbl" style="color:var(--green-fg)">Overjoyed (5)</div><div class="btrk"><div class="bfil bfg" style="width:64.63%"></div></div><div class="bnum">201 &nbsp;<span class="p">64.63%</span></div></div>
+      <div class="brow"><div class="blbl" style="color:var(--green-fg)">Happy (4)</div><div class="btrk"><div class="bfil bfg" style="width:1.29%"></div></div><div class="bnum">4 &nbsp;<span class="p">1.29%</span></div></div>
+      <div class="brow"><div class="blbl" style="color:var(--amber-fg)">Neutral (3)</div><div class="btrk"><div class="bfil bfa" style="width:7.07%"></div></div><div class="bnum">22 &nbsp;<span class="p">7.07%</span></div></div>
+      <div class="brow"><div class="blbl" style="color:var(--red-fg)">Dissatisfied (2)</div><div class="btrk"><div class="bfil bfr" style="width:0%"></div></div><div class="bnum">0 &nbsp;<span class="p">0.00%</span></div></div>
+      <div class="brow"><div class="blbl" style="color:var(--red-fg)">Angry (1)</div><div class="btrk"><div class="bfil bfr" style="width:27.01%"></div></div><div class="bnum">84 &nbsp;<span class="p">27.01%</span></div></div>
+    </div>
+    <div style="background:#e8f4fb;border:1px solid #aed6f1;border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--teal)">Satisfaction Rate (4–5)</div>
+      <div style="font-size:36px;font-weight:900;color:var(--teal);line-height:1.1">65.92%</div>
+      <div style="font-size:9.5px;color:var(--teal)">Target: 70%+</div>
+    </div>
+    <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:6px;padding:12px 18px;text-align:center">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--red-fg)">Negative Rate (1–2)</div>
+      <div style="font-size:36px;font-weight:900;color:var(--red-fg);line-height:1.1">27.01%</div>
+      <div style="font-size:9.5px;color:var(--red-fg)">Flag if above 25% ◀</div>
+    </div>
+  </div>
+
+  <div class="sp"></div><div class="g2">
+    <div>
+      <div class="sh">Monthly Trend</div>
+      <div class="tw"><table>
+        <thead><tr><th>Month</th><th>Total</th><th>Avg Score</th><th>Satisfied %</th></tr></thead>
+        <tbody>
+          <tr><td>Jan 2026</td><td>48</td><td class="neg">3.46</td><td class="neg">58.33%</td></tr>
+          <tr><td>Feb 2026</td><td>52</td><td class="pos">4.12</td><td class="pos">75.00%</td></tr>
+          <tr><td>Mar 2026</td><td>85</td><td class="pos">4.06</td><td class="pos">71.76%</td></tr>
+          <tr><td>Apr 2026</td><td>77</td><td>3.70</td><td>64.94%</td></tr>
+          <tr><td>May 2026</td><td>16</td><td>4.00</td><td>68.75%</td></tr>
+          <tr><td>Jun 2026</td><td>33</td><td class="neg">2.94</td><td class="neg">48.48%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <div class="sh">Top Reasons — Angry / Score 1–2</div>
+      <div class="tw"><table>
+        <thead><tr><th>Theme</th><th>Count</th><th>% of Negative</th></tr></thead>
+        <tbody>
+          <tr><td>Other</td><td>27</td><td class="p">51.92%</td></tr>
+          <tr><td>Charge issues</td><td>7</td><td class="p">13.46%</td></tr>
+          <tr><td>Scam issues</td><td>7</td><td class="p">13.46%</td></tr>
+          <tr><td>Growth issues</td><td>5</td><td class="p">9.62%</td></tr>
+          <tr><td>Refund issues</td><td>4</td><td class="p">7.69%</td></tr>
+          <tr><td>Follower issues</td><td>4</td><td class="p">7.69%</td></tr>
+          <tr><td>Cancel issues</td><td>3</td><td class="p">5.77%</td></tr>
+          <tr><td>Fake issues</td><td>3</td><td class="p">5.77%</td></tr>
+          <tr><td>Likes issues</td><td>2</td><td class="p">3.85%</td></tr>
+          <tr><td>Bot issues</td><td>2</td><td class="p">3.85%</td></tr>
+          <tr><td>Views issues</td><td>2</td><td class="p">3.85%</td></tr>
+          <tr><td>Customer service issues</td><td>2</td><td class="p">3.85%</td></tr>
+          <tr><td>Billing issues</td><td>2</td><td class="p">3.85%</td></tr>
+          <tr><td>Chargeback issues</td><td>1</td><td class="p">1.92%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="sh" style="margin-top:16px">Recent Negative Responses (Score 1–2) — Last 20</div>
+  <div class="tw ox"><table>
+    <thead><tr><th>Date</th><th>Score</th><th>Sentiment</th><th style="text-align:left">Reason</th></tr></thead>
+    <tbody>
+      <tr><td>Jun 15, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">This is awful, you keep sidestepping the issue that you are not even remotely close to hit the targets that I pay you for.</td></tr>
+      <tr><td>Jun 14, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">Gave me suggestions for something that wasn't even my issue while still not fixing my problem.</td></tr>
+      <tr><td>Jun 11, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">Billing and customer service suck</td></tr>
+      <tr><td>Jun 9, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">After 2+ weeks, I am still getting generic responses and nothing directly related to my issue</td></tr>
+      <tr><td>Jun 8, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">I need my money ASAP</td></tr>
+      <tr><td>Jun 7, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">I need help for my account to grow for the money i paid cloutify</td></tr>
+      <tr><td>Jun 5, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">I've basically lost my account because of this service and no one will help me</td></tr>
+      <tr><td>Jun 3, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">I asked for my money back & got a reply basically ignoring my request. This is a scam</td></tr>
+      <tr><td>Jun 1, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">Whenever I write your email, I start to get likes, but unfortunately, I don't understand why I don't get any new followers</td></tr>
+      <tr><td>May 30, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">Every thing your said was a lie</td></tr>
+      <tr><td>May 3, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">i don't like you don't put no refunds on your account</td></tr>
+      <tr><td>May 1, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">No uplift noted in viewers or sales. Asked for help but received a very unsatisfactory response from AI</td></tr>
+      <tr><td>Apr 30, 2026</td><td>1</td><td><span class="bdg br">Angry</span></td><td class="ctxt">BECAUSE I'M NOT GETTING THE SUPPORT I NEED</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sh" style="margin-top:16px">Performance by Agent</div>
+  <div class="tw"><table>
+    <thead><tr><th>Agent</th><th>Total</th><th>Overjoyed</th><th>Happy</th><th>Neutral</th><th>Neg (1–2)</th><th>Avg</th><th>Sat Rate</th></tr></thead>
+    <tbody>
+      <tr><td>Nate Rosen</td><td>311</td><td>201</td><td>4</td><td>22</td><td>84</td><td>3.77</td><td>65.92%</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="sh" style="margin-top:16px">Biweekly Notes</div>
+  <div class="tiles">
+    <div class="tile"><div class="tl">Total CSAT Responses</div><div class="tv">311</div><div class="ts">Full filtered range</div></div>
+    <div class="tile a"><div class="tl">Average CSAT Score</div><div class="tv">3.77/5.0</div><div class="ts">Target: 4.0+</div></div>
+    <div class="tile r"><div class="tl">Satisfaction Rate (4–5)</div><div class="tv">65.92%</div><div class="ts">Target: 70%+</div></div>
+    <div class="tile g"><div class="tl">Overjoyed Rate (5)</div><div class="tv">64.63%</div><div class="ts">Highest satisfaction</div></div>
+    <div class="tile r"><div class="tl">Negative Rate (1–2)</div><div class="tv">27.01%</div><div class="ts">Flag if above 25%</div></div>
+    <div class="tile a"><div class="tl">Top Negative Theme</div><div class="tv" style="font-size:13px">Other</div><div class="ts">Most common complaint</div></div>
+  </div>
+</div></div>
+
+<!-- ══════════════════════════════════════════════════════
+     BIWEEKLY REPORT
+══════════════════════════════════════════════════════ -->
+<div id="pg-rpt" class="page"><div class="wrap">
+  <div class="ph"><h1>HS/CL Biweekly Report Generator</h1><div class="sub">Generate a Slack-ready biweekly report based on tracker data within your selected date range.</div></div>
+  <div class="filter-bar">DATE RANGE FILTER — Edit the three yellow cells then click GENERATE REPORT.</div>
+  <div class="filter-row" style="gap:16px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <label style="font-size:10.5px;font-weight:700;color:var(--navy)">Period Label</label>
+      <input type="text" id="rl" value="June 18, 2026" style="background:var(--yellow);border:1.5px solid var(--amber-border);border-radius:3px;padding:5px 10px;font:600 12px/1 var(--font);width:170px">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <label style="font-size:10.5px;font-weight:700;color:var(--navy)">Start Date</label>
+      <input type="date" id="rs" value="2026-01-01" class="fi" style="width:140px">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <label style="font-size:10.5px;font-weight:700;color:var(--navy)">End Date</label>
+      <input type="date" id="re" value="2026-06-18" class="fi" style="width:140px">
+    </div>
+    <div style="margin-top:auto"><button class="genbtn" onclick="genRpt()">GENERATE REPORT</button></div>
+  </div>
+  <div id="rh" class="sh navy" style="margin-top:0;border-radius:0;text-align:center;font-size:13px">REPORT OUTPUT — JUNE 18, 2026</div>
+  <div style="background:var(--green-bg);color:var(--green-fg);border:1px solid var(--green-border);border-top:none;padding:5px 14px;font-size:10.5px;font-weight:700;text-align:center">
+    Copy the text below and paste directly into Slack. Bold (*text*) and bullet formatting renders automatically.
+  </div>
+  <div class="rout" id="ro">*FULFILLMENT TRACKER DATA*
+
+• *Overall Volume and Trend*
+   ◦ *APR*: 600 cases (18.01%)
+   ◦ *MAY*: 947 cases (28.42%)
+   ◦ *JUN*: 519 cases (15.58%)
+
+• *Leading Issues by Product*
+   ◦ *High Social - TikTok*:
+      1. Follower Growth - Slow: *225* (17.32%)
+      2. Follower Growth - Stalled/No Growth: *182* (14.01%)
+      3. Follower Quality - Poor: *161* (12.39%)
+   ◦ *High Social - Instagram*:
+      1. Follower Growth - Stalled/No Growth: *35* (31.82%)
+      2. Follower Growth - Slow: *29* (26.36%)
+      3. Follower Quality - Poor: *22* (20.00%)
+   ◦ *Cloutify - TikTok*:
+      1. Follower Growth - Slow: *373* (19.54%)
+      2. Follower Quality - Poor: *308* (16.13%)
+      3. Follower Quality - Foreign: *263* (13.78%)
+
+• *Summary and Suggested Actions*
+   ◦ Escalate recurring Follower Growth and Quality issues to Fulfillment Devs via the QA Slack channel and create Asana tickets for tracking.
+   ◦ Continue proactive monitoring and biweekly alignment with the *Fulfillment QA Team Lead* to prioritize resolution and prevent carry-over into the next period.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*REFUND TRACKER DATA*
+
+• *Overall Volume and Trend*
+   ◦ *JAN*: 106 refunds | Declined: 0 | Success: 106
+   ◦ *FEB*: 102 refunds | Declined: 3 | Success: 99
+   ◦ *MAR*: 135 refunds | Declined: 0 | Success: 135
+   ◦ *APR*: 127 refunds | Declined: 11 | Success: 116
+   ◦ *MAY*: 130 refunds | Declined: 29 | Success: 101
+   ◦ *JUN*: 66 refunds | Declined: 24 | Success: 42
+
+• *Top Reasons for Refund Request*
+   1. *Fulfillment Issue - Growth, Quality, Inauthentic, No Engagement, Performance*: *284 cases*
+   2. *Pricing Format - Accidental Signup, Price Confusion, Misleading, Wrong Plan Selected*: *183 cases*
+   3. *Personal Decision - Budget, Can't Afford, Changed Mind, No Longer Needed, Redirect Focus*: *117 cases*
+
+• *Summary and Suggested Actions*
+   ◦ Review Annual plan refund eligibility criteria with the team to ensure consistent assessments across all agents.
+   ◦ Work with the Fulfillment team to address Fulfillment Issue refund drivers to reduce volume at the source.
+   ◦ Continue biweekly review of refund trends with leadership and align CS guidelines.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*SAVE OFFER TRACKER DATA*
+
+• *Overall Volume and Trend*
+   ◦ *JAN*: 239 cases | 58 accepted | *24.27% save rate*
+   ◦ *FEB*: 229 cases | 55 accepted | *24.02% save rate*
+   ◦ *MAR*: 291 cases | 64 accepted | *21.99% save rate*
+   ◦ *APR*: 258 cases | 55 accepted | *21.32% save rate*
+   ◦ *MAY*: 360 cases | 60 accepted | *16.67% save rate*
+   ◦ *JUN*: 246 cases | 46 accepted | *18.70% save rate*
+
+• *Save Performance by Agent*
+   ◦ *Polly*: 468 total | 67 accepted | *14.32% save rate*
+   ◦ *Rosie*: 312 total | 80 accepted | *25.64% save rate*
+   ◦ *Cha-Cha*: 256 total | 58 accepted | *22.66% save rate*
+   ◦ *Sam*: 227 total | 50 accepted | *22.03% save rate*
+   ◦ *Christine*: 189 total | 49 accepted | *25.93% save rate*
+   ◦ *Rocky*: 143 total | 24 accepted | *16.78% save rate*
+   ◦ *Rafael*: 26 total | 9 accepted | *34.62% save rate*
+   ◦ *(blank)*: 2 total | 1 accepted | *50.00% save rate*
+
+• *Top Save Offers Used*
+   1. *Offered Retention Discount (Free Month)*: 257 times (15.83%)
+   2. *Offered Retention Discount (New Account - Next Month)*: 251 times (15.47%)
+   3. *Downgraded to Monthly (50% Refund, 50% Credit)*: 240 times (14.79%)
+
+• *Summary and Suggested Actions*
+   ◦ Ensure all agents are consistently presenting save offers before processing cancellations — reduce Not Attempted cases.
+   ◦ Reinforce training around top-performing offers to ensure consistent usage across the team.
+   ◦ Develop stronger Annual plan save strategies for higher-commitment plan customers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+*CSAT AND NPS DATA*
+
+• *Overall Volume and Trend*
+   CSAT Responses:
+   ◦ *Nov 2025*: 51 responses | Avg: *4.10 / 5.0* | Satisfaction Rate: *74.51%*
+   ◦ *Dec 2025*: 45 responses | Avg: *3.67 / 5.0* | Satisfaction Rate: *62.22%*
+   ◦ *Current Period*: 311 responses | Avg: *3.77 / 5.0* | Satisfaction Rate: *65.92%*
+
+   NPS Responses:
+   ◦ *Nov 2025*: 27 responses | NPS Score: *-15* | Promoter Rate: *40.74%*
+   ◦ *Dec 2025*: 23 responses | NPS Score: *13* | Promoter Rate: *47.83%*
+   ◦ *Current Period*: 96 responses | NPS Score: *-1* | Promoter Rate: *43.75%*
+
+• *CSAT Team Score and Analysis*
+   The team's current CSAT average is *3.77 / 5.0* with a satisfaction rate of *65.92%*, based on 311 responses. Compared to *3.67* in Dec 2025 and *4.10* in Nov 2025, the score has remained steady this period. The negative response rate currently stands at *27.01%*, with the top complaint themes driven by fulfillment performance and unresolved account issues.
+
+• *NPS Team Score and Analysis*
+   The team's current NPS score is *-1* with a promoter rate of *43.75%*, based on 96 responses. Compared to *13* in Dec 2025 and *-15* in Nov 2025, the NPS has declined this period. The detractor rate is currently at *44.79%*, primarily driven by follower quality, inauthentic growth, and unmet expectations around service performance.
+
+• *Summary and Suggested Actions*
+   ◦ CSAT is currently at *3.77 / 5.0* with a negative response rate above the 25% flag threshold — review flagged cases and escalate patterns to the team lead for immediate coaching.
+   ◦ NPS is currently at *-1* (below 0 = Poor) — detractor volume needs immediate attention. Identify accounts with recurring complaints and prioritize proactive outreach.
+   ◦ Follower quality and growth complaints remain the top CSAT and NPS detractor drivers. Align with the Fulfillment QA team to address these at the service level.
+   ◦ Continue biweekly review of CSAT and NPS trends with leadership to track progress against the *4.0+ CSAT* and *30+ NPS* targets.
+
+Generated on: Jun 18, 2026 02:05 PM</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+    <button class="cpbtn" onclick="cp()">Copy to Clipboard</button>
+    <span id="cok" class="cpok">Copied!</span>
+    <span style="font-size:10.5px;color:var(--muted);margin-left:auto">Generated on: Jun 18, 2026 02:05 PM</span>
+  </div>
+</div></div>
+
+<script>
+function go(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  btn.classList.add('on');
+  window.scrollTo(0,0);
+}
+function genRpt(){
+  const lbl=(document.getElementById('rl').value||'Current Period').toUpperCase();
+  document.getElementById('rh').textContent='REPORT OUTPUT — '+lbl;
+}
+function cp(){
+  const txt=document.getElementById('ro').innerText;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const el=document.getElementById('cok');
+    el.style.display='inline';
+    setTimeout(()=>el.style.display='none',2500);
+  }).catch(()=>{
+    const t=document.createElement('textarea');
+    t.value=txt;document.body.appendChild(t);t.select();
+    document.execCommand('copy');document.body.removeChild(t);
+    const el=document.getElementById('cok');
+    el.style.display='inline';
+    setTimeout(()=>el.style.display='none',2500);
+  });
+}
+</script>
+</body>
+</html>
