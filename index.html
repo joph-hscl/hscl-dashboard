@@ -435,24 +435,25 @@ function sortDesc(map, total) {
   return Object.entries(map).sort((a,b) => b[1]-a[1]).map(([k,v]) => [k, v, pct(v, total)]);
 }
 
-function tbl(hdrs, rows, opts={}) {
-  const nc = hdrs.length;
-  let h = '<table><thead><tr>';
-  hdrs.forEach((hd, i) => {
-    h += `<th style="text-align:${i===0?'left':'right'}">${hd}</th>`;
-  });
+function tbl(hdrs, rows, opts) {
+  var nc = hdrs.length;
+  var h = '<table><thead><tr>';
+  for (var hi = 0; hi < hdrs.length; hi++) {
+    h += '<th style="text-align:' + (hi===0?'left':'right') + '">' + hdrs[hi] + '</th>';
+  }
   h += '</tr></thead><tbody>';
-  rows.forEach(r => {
-    const isGT = r._gt === true;
-    h += `<tr${isGT?' class="gt"':''}>`;
-    for (let i = 0; i < nc; i++) {
-      const v = (r[i] === undefined || r[i] === null) ? '' : r[i];
-      const al = i === 0 ? 'left' : 'right';
-      const isPct = typeof v === 'string' && v.endsWith('%') && i > 0;
-      h += `<td style="text-align:${al}"${isPct?' class="p"':''}>${v}</td>`;
+  for (var ri = 0; ri < rows.length; ri++) {
+    var r = rows[ri];
+    var isGT = r._gt === true;
+    h += '<tr' + (isGT ? ' class="gt"' : '') + '>';
+    for (var ci = 0; ci < nc; ci++) {
+      var v = (r[ci] === undefined || r[ci] === null) ? '' : String(r[ci]);
+      var al = ci === 0 ? 'left' : 'right';
+      var isPct = v.endsWith('%') && ci > 0;
+      h += '<td style="text-align:' + al + '"' + (isPct ? ' class="p"' : '') + '>' + v + '</td>';
     }
     h += '</tr>';
-  });
+  }
   return h + '</tbody></table>';
 }
 
@@ -559,7 +560,7 @@ async function refreshFul() {
       });
       const gtRow = ['Grand Total', ...months.map(m => cats.reduce((s,c) => s+(M[c][m]||0), 0))];
       gtRow.push(gtRow.slice(1).reduce((s,v) => s+(typeof v==='number'?v:0), 0));
-      rows.push(Object.assign(gtRow, {_gt: true}));
+      gtRow._gt = true; rows.push(gtRow);
       return `<table><thead><tr>${hdrs.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${
         rows.map(r => `<tr${r._gt?' class="gt"':''}>${r.map((v,i)=>`<td style="text-align:${i===0?'left':'right'}">${v}</td>`).join('')}</tr>`).join('')
       }</tbody></table>`;
@@ -581,8 +582,10 @@ async function refreshFul() {
 
     // Issue sort helpers
     function issueTable(map, groupTotal) {
-      const rows = sortDesc(map, groupTotal);
-      rows.push(Object.assign(['Grand Total', groupTotal, '100.00%'], {_gt:true}));
+      var rows = sortDesc(map, groupTotal);
+      var gtRow = ['Grand Total', groupTotal, '100.00%'];
+      gtRow._gt = true;
+      rows.push(gtRow);
       return tbl(['Issue','Count','% Share'], rows);
     }
 
@@ -597,11 +600,11 @@ async function refreshFul() {
 
     // Month table rows
     const moRows = months.map(m => [m, monthMap[m]||0, pct(monthMap[m]||0, total)]);
-    moRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    var __gt_moRows = ['Grand Total', total, '100.00%']; __gt_moRows._gt = true; moRows.push(__gt_moRows);
 
     // Agent rows
     const agRows = sortDesc(agentMap, total);
-    agRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    var __gt_agRows = ['Grand Total', total, '100.00%']; __gt_agRows._gt = true; agRows.push(__gt_agRows);
 
     // Plan rows
     const plRows = sortDesc(planMap, total);
@@ -720,7 +723,7 @@ async function refreshRef() {
       const d = moMap[m];
       return [m, d.declined, d.escalated, d.pending, d.success, d.total, pct(d.total, total)];
     });
-    moRows.push(Object.assign(['Grand Total', declined, escalated, pending, success, total, '100.00%'], {_gt:true}));
+    var __gt_moRows = ['Grand Total', declined, escalated, pending, success, total, '100.00%']; __gt_moRows._gt = true; moRows.push(__gt_moRows);
 
     // Status bars
     const statusBars = `<div class="tw" style="padding:14px">
@@ -730,11 +733,11 @@ async function refreshRef() {
       <div class="brow"><div class="blbl" style="color:var(--afg)">Escalated</div><div class="btrk"><div class="bfil bfa" style="width:${pct(escalated,total)}"></div></div><div class="bnum">${escalated} — ${pct(escalated,total)}</div></div>
     </div>`;
 
-    const reRows = sortDesc(reasonMap, total); reRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
-    const elRows = sortDesc(eligMap, total); elRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    const reRows = sortDesc(reasonMap, total); var __gt_reRows = ['Grand Total', total, '100.00%']; __gt_reRows._gt = true; reRows.push(__gt_reRows);
+    const elRows = sortDesc(eligMap, total); var __gt_elRows = ['Grand Total', total, '100.00%']; __gt_elRows._gt = true; elRows.push(__gt_elRows);
     const plRows = sortDesc(planMap, total);
     const paRows = Object.entries(planAmtMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k, fmtAmt(v)]);
-    paRows.push(Object.assign(['Grand Total', amtStr], {_gt:true}));
+    var __gt_paRows = ['Grand Total', amtStr]; __gt_paRows._gt = true; paRows.push(__gt_paRows);
     const stRows = sortDesc(statusMap, total);
 
     content.innerHTML = [
@@ -840,18 +843,18 @@ async function refreshSav() {
       const acc = agentAcc[a]||0;
       return [a, t, acc, pct(acc, t)];
     });
-    agRows.push(Object.assign(['Grand Total', total, accepted, saveRate], {_gt:true}));
+    var __gt_agRows = ['Grand Total', total, accepted, saveRate]; __gt_agRows._gt = true; agRows.push(__gt_agRows);
 
     // Monthly rows
     const moRows = months.map(m => {
       const d = moMap[m];
       return [m, d.total, d.accepted, pct(d.accepted, d.total)];
     });
-    moRows.push(Object.assign(['Grand Total', total, accepted, saveRate], {_gt:true}));
+    var __gt_moRows = ['Grand Total', total, accepted, saveRate]; __gt_moRows._gt = true; moRows.push(__gt_moRows);
 
-    const ofRows = sortDesc(offerMap, total); ofRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
-    const reRows = sortDesc(reasonMap, total); reRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
-    const stRows = sortDesc(subtypeMap, total); stRows.push(Object.assign(['Grand Total', total, '100.00%'], {_gt:true}));
+    const ofRows = sortDesc(offerMap, total); var __gt_ofRows = ['Grand Total', total, '100.00%']; __gt_ofRows._gt = true; ofRows.push(__gt_ofRows);
+    const reRows = sortDesc(reasonMap, total); var __gt_reRows = ['Grand Total', total, '100.00%']; __gt_reRows._gt = true; reRows.push(__gt_reRows);
+    const stRows = sortDesc(subtypeMap, total); var __gt_stRows = ['Grand Total', total, '100.00%']; __gt_stRows._gt = true; stRows.push(__gt_stRows);
     const plRows = sortDesc(planMap, total);
 
     content.innerHTML = [
