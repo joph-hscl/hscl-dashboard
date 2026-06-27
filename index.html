@@ -1188,7 +1188,6 @@ function cp() {
 // ═══════════════════════════════════════════════════
 const OTT_SHEET_ID = '1Yw2KZgzyKvFuTLrLtO5sNoWpKbfgH5HfH3_0fRo-3dQ';
 const OTT_TAB      = 'OT-TimeOff';
-const OTT_API      = `https://docs.google.com/spreadsheets/d/${OTT_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(OTT_TAB)}`;
 
 let ottAllRows = [];
 let ottFiltered = [];
@@ -1228,61 +1227,63 @@ async function ottLoad() {
   loading.style.display = 'block';
   errEl.style.display = 'none';
   try {
-    const res  = await fetch(OTT_API);
-    const text = await res.text();
-    const json = JSON.parse(text.replace(/^.*?setResponse\(/, '').replace(/\);\s*$/, ''));
-    const rows = json.table.rows || [];
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${OTT_SHEET_ID}/values/${encodeURIComponent(OTT_TAB)}?key=${API_KEY}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = data.values || [];
+    // Row 0 is header, data starts at row 1
+    // Columns (0-based): 0=Timestamp, 1=Email, 2=Full Name, 3=Manager,
+    //   4=Type, 5=OT Date, 6=OT Hours, 7=OT Note,
+    //   8=TO Category, 9=TO Start, 10=TO End, 11=TO Hours, 12=TO Note,
+    //   13=Manager Comments, 14=Approval Status
+    const get = (row, i) => (row[i] || '').toString().trim();
 
-    ottAllRows = rows.map(r => {
-      const get = i => (r.c[i] && r.c[i].v != null) ? r.c[i].v : '';
-      const gf  = i => (r.c[i] && r.c[i].f)        ? r.c[i].f  : String(get(i) || '');
-
-      const rawType = String(get(4) || '').trim();
+    ottAllRows = raw.slice(1).map(row => {
+      const rawType = get(row, 4);
       const type    = ottNormaliseType(rawType);
       const isOT    = type === 'Overtime';
 
-      // Date — OT uses col 5, TimeOff uses col 9
+      // Dates — stored as "M/D/YYYY" plain text in the sheet
+      const rawDate = get(row, isOT ? 5 : 9);
       let dateStr = '';
-      const dRaw = get(isOT ? 5 : 9);
-      if (dRaw) {
-        const df = gf(isOT ? 5 : 9);
-        if (df) {
-          // GViz formatted dates come as "M/D/YYYY"
-          const parts = String(df).split('/');
-          if (parts.length === 3) {
-            dateStr = parts[2].padStart(4,'0') + '-' + parts[0].padStart(2,'0') + '-' + parts[1].padStart(2,'0');
-          } else {
-            dateStr = String(df);
-          }
+      if (rawDate) {
+        const parts = rawDate.split('/');
+        if (parts.length === 3) {
+          dateStr = parts[2].padStart(4,'0') + '-' + parts[0].padStart(2,'0') + '-' + parts[1].padStart(2,'0');
+        } else {
+          const d = parseDate(rawDate);
+          if (d) dateStr = d.toISOString().split('T')[0];
         }
       }
 
-      // OT hours — handle "30mins"
+      // OT hours — handle "30mins" edge case
       let otHrs = 0;
-      const otRaw = String(get(6) || '').trim();
+      const otRaw = get(row, 6);
       if (otRaw) {
         const m = otRaw.match(/[\d.]+/);
         if (m) { otHrs = parseFloat(m[0]); if (otRaw.toLowerCase().includes('min')) otHrs = otHrs / 60; }
       }
 
-      const toHrs  = parseFloat(get(11)) || 0;
-      const toDays = toHrs / 8;
-      const rawCat = String(get(8) || '').trim();
+      const toHrs    = parseFloat(get(row, 11)) || 0;
+      const toDays   = toHrs / 8;
+      const rawCat   = get(row, 8);
       const category = ottNormaliseCat(rawCat);
-      const status   = String(get(14) || '').trim();
+      const status   = get(row, 14);
 
       return {
-        name:     String(get(2) || '').trim(),
+        name:    get(row, 2),
         type,
-        date:     dateStr,
+        date:    dateStr,
         otHrs,
-        otNote:   String(get(7) || '').trim(),
+        otNote:  get(row, 7),
         category,
-        toStart:  gf(9),
-        toEnd:    gf(10),
+        toStart: get(row, 9),
+        toEnd:   get(row, 10),
         toHrs,
         toDays,
-        toNote:   String(get(12) || '').trim(),
+        toNote:  get(row, 12),
         status,
       };
     }).filter(r => r.name && r.type);
@@ -1306,7 +1307,7 @@ async function ottLoad() {
 
   } catch(e) {
     loading.style.display = 'none';
-    errEl.textContent = 'Could not load OT-TimeOff data. Make sure the sheet is shared publicly (View access). Error: ' + e.message;
+    errEl.textContent = 'Could not load OT-TimeOff data. Error: ' + e.message;
     errEl.style.display = 'block';
   }
 }
