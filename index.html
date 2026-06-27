@@ -106,6 +106,41 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .err{background:var(--rbg);color:var(--rfg);border:1px solid var(--rbr);padding:10px 14px;border-radius:4px;font-size:12px;margin:10px 0;display:none}
 
 @media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ── OT-TIMEOFF TAB ── */
+.ott-filters{background:#fff;border:1px solid var(--bdr);border-top:none;padding:10px 16px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ott-fg{display:flex;flex-direction:column;gap:4px}
+.ott-fg label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--navy)}
+.ott-fg select,.ott-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);min-width:130px;color:var(--txt)}
+.ott-fg select:focus,.ott-fg input:focus{outline:2px solid var(--blue)}
+.ott-rbtn{background:var(--blue);color:#fff;border:none;padding:7px 18px;border-radius:3px;font:700 11.5px/1 var(--font);cursor:pointer;transition:background .15s}
+.ott-rbtn:hover{background:var(--teal)}
+.ott-gbtn{background:transparent;color:var(--mut);border:1px solid var(--bdr);padding:7px 14px;border-radius:3px;font:600 11.5px/1 var(--font);cursor:pointer}
+.ott-gbtn:hover{color:var(--txt);border-color:var(--mut)}
+.ott-tiles{background:#fff;border:1px solid var(--bdr);border-top:none;padding:12px;display:flex;gap:10px;flex-wrap:wrap;border-radius:0 0 4px 4px}
+.ott-card{flex:1;min-width:120px;border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;text-align:center;background:var(--grey)}
+.ott-card .cl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:5px}
+.ott-card .cv{font-size:22px;font-weight:800;line-height:1;color:var(--navy)}
+.ott-card .cs{font-size:9.5px;color:var(--mut);margin-top:3px}
+.ott-card.ot-c{background:#fff8ec;border-color:#f5c06a}.ott-card.ot-c .cv{color:#b7670a}
+.ott-card.to-c{background:#eafaf5;border-color:#83d5b5}.ott-card.to-c .cv{color:#1a6644}
+.ott-card.ag-c{background:#e8f4fb;border-color:#aed6f1}.ott-card.ag-c .cv{color:var(--teal)}
+.ott-brow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ott-blbl{font-size:11px;font-weight:600;flex-shrink:0;min-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ott-btrk{flex:1;height:12px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+.ott-bfil{height:100%;border-radius:3px;transition:width .4s ease}
+.ott-bfil.ot{background:#e8960a}
+.ott-bfil.to{background:#27ae7a}
+.ott-bnum{width:72px;text-align:right;font-size:11px;font-weight:700;color:var(--txt);flex-shrink:0}
+.ott-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.ott-badge.ot{background:#fff8ec;color:#b7670a}
+.ott-badge.to{background:#eafaf5;color:#1a6644}
+.ott-badge.ap{background:var(--gbg);color:var(--gfg)}
+.ott-badge.ca{background:var(--rbg);color:var(--rfg)}
+.ott-badge.na{background:var(--amb);color:var(--afg)}
+.ott-td-ot{color:#b7670a;font-weight:700}
+.ott-td-to{color:#1a6644;font-weight:700}
+.ott-result{font-size:10.5px;color:var(--mut);font-weight:600}
 </style>
 </head>
 <body>
@@ -119,6 +154,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <button class="tab"     onclick="go('nps',this)">Dashboard - NPS</button>
     <button class="tab"     onclick="go('cst',this)">Dashboard - CSAT</button>
     <button class="tab"     onclick="go('rpt',this)">BiWeekly Report</button>
+    <button class="tab"     onclick="go('ott',this)">OT-TimeOff</button>
   </div>
 </nav>
 
@@ -316,6 +352,126 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <div class="tile tr"><div class="tl">Satisfaction Rate</div><div class="tv">65.92%</div><div class="ts">Target: 70%+</div></div>
     <div class="tile tr"><div class="tl">Negative Rate</div><div class="tv">27.01%</div><div class="ts">Flag if above 25%</div></div>
     <div class="tile tg"><div class="tl">Overjoyed Rate</div><div class="tv">64.63%</div></div>
+  </div>
+</div></div>
+
+<!-- OT-TIMEOFF -->
+<div id="pg-ott" class="page"><div class="wrap">
+  <div class="ph">
+    <h1>OT &amp; Time Off Dashboard</h1>
+    <div class="sub" id="ott-sub">Source: Agent/Team KPI — OT-TimeOff Sheet</div>
+  </div>
+  <div class="fbar">FILTERS — Select options then click Refresh.</div>
+  <div class="ott-filters">
+    <div class="ott-fg">
+      <label>Agent Name</label>
+      <select id="ott-agent"><option value="">All Agents</option></select>
+    </div>
+    <div class="ott-fg">
+      <label>Start Date</label>
+      <input type="date" id="ott-start" />
+    </div>
+    <div class="ott-fg">
+      <label>End Date</label>
+      <input type="date" id="ott-end" />
+    </div>
+    <div class="ott-fg">
+      <label>Type</label>
+      <select id="ott-type">
+        <option value="">All Types</option>
+        <option value="Overtime">Overtime</option>
+        <option value="Time Off">Time Off</option>
+      </select>
+    </div>
+    <div class="ott-fg">
+      <label>Time Off Category</label>
+      <select id="ott-cat">
+        <option value="">All Categories</option>
+        <option>Personal Day</option>
+        <option>Vacation</option>
+        <option>Sick Leave</option>
+        <option>Absent</option>
+        <option>Maternity</option>
+        <option>Paternity</option>
+        <option>Bereavement</option>
+        <option>Emergency</option>
+        <option>AWOL</option>
+        <option>Others</option>
+      </select>
+    </div>
+    <div class="ott-fg">
+      <label>Approval Status</label>
+      <select id="ott-status">
+        <option value="">All Statuses</option>
+        <option>Approved</option>
+        <option>Cancelled</option>
+        <option>Not Approved</option>
+      </select>
+    </div>
+    <button class="ott-rbtn" onclick="ottApply()">Refresh</button>
+    <button class="ott-gbtn" onclick="ottReset()">Reset</button>
+  </div>
+  <div class="loading" id="ott-loading">Loading data from tracker...</div>
+  <div class="err" id="ott-err"></div>
+  <div class="sbar" id="ott-showing">Loading...</div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="sh">Summary</div>
+  <div class="ott-tiles">
+    <div class="ott-card"><div class="cl">Total Entries</div><div class="cv" id="ott-s-entries">--</div><div class="cs">in selected range</div></div>
+    <div class="ott-card ot-c"><div class="cl">OT Hours Rendered</div><div class="cv" id="ott-s-ot">--</div><div class="cs" id="ott-s-ot-sub">-- entries</div></div>
+    <div class="ott-card to-c"><div class="cl">Time Off Days</div><div class="cv" id="ott-s-to">--</div><div class="cs" id="ott-s-to-sub">-- entries</div></div>
+    <div class="ott-card ag-c"><div class="cl">Agents with Entries</div><div class="cv" id="ott-s-agents">--</div><div class="cs">unique agents</div></div>
+  </div>
+
+  <!-- BREAKDOWNS -->
+  <div class="sp"></div>
+  <div class="g2">
+    <div>
+      <div class="sh">OT Hours by Agent</div>
+      <div class="tw" style="padding:12px 14px" id="ott-panel-ot-agent"><div class="p" style="font-size:11px">Loading...</div></div>
+    </div>
+    <div>
+      <div class="sh">Time Off by Category</div>
+      <div class="tw" style="padding:12px 14px" id="ott-panel-to-cat"><div class="p" style="font-size:11px">Loading...</div></div>
+    </div>
+  </div>
+  <div class="sp"></div>
+  <div class="g2">
+    <div>
+      <div class="sh">Time Off Days by Agent</div>
+      <div class="tw" style="padding:12px 14px" id="ott-panel-to-agent"><div class="p" style="font-size:11px">Loading...</div></div>
+    </div>
+    <div>
+      <div class="sh">Monthly OT Hours</div>
+      <div class="tw" style="padding:12px 14px" id="ott-panel-ot-monthly"><div class="p" style="font-size:11px">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- DETAIL TABLE -->
+  <div class="sp"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+    <div class="sh" style="margin-top:0">All Records</div>
+    <div class="ott-result" id="ott-result-count"></div>
+  </div>
+  <div class="tw ox">
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left">Date</th>
+          <th style="text-align:left">Agent</th>
+          <th style="text-align:left">Type</th>
+          <th style="text-align:left">Category / Reason</th>
+          <th>OT Hours</th>
+          <th>Time Off (hrs)</th>
+          <th style="text-align:left">Time Off Period</th>
+          <th style="text-align:left">Status</th>
+        </tr>
+      </thead>
+      <tbody id="ott-tbody">
+        <tr><td colspan="8" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+      </tbody>
+    </table>
   </div>
 </div></div>
 
@@ -1026,6 +1182,298 @@ function cp() {
     setTimeout(() => el.style.display = 'none', 2500);
   });
 }
+
+// ═══════════════════════════════════════════════════
+// OT-TIMEOFF
+// ═══════════════════════════════════════════════════
+const OTT_SHEET_ID = '1Yw2KZgzyKvFuTLrLtO5sNoWpKbfgH5HfH3_0fRo-3dQ';
+const OTT_TAB      = 'OT-TimeOff';
+const OTT_API      = `https://docs.google.com/spreadsheets/d/${OTT_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(OTT_TAB)}`;
+
+let ottAllRows = [];
+let ottFiltered = [];
+let ottLoaded = false;
+
+const OTT_CATS = ['Personal Day','Vacation','Sick Leave','Absent','Maternity','Paternity','Bereavement','Emergency','AWOL','Others'];
+
+function ottNormaliseType(raw) {
+  const r = (raw||'').toLowerCase();
+  if (r.includes('overtime')) return 'Overtime';
+  if (r.includes('time off') || r.includes('absent')) return 'Time Off';
+  return raw || '';
+}
+
+function ottNormaliseCat(raw) {
+  if (!raw) return '';
+  const r = raw.toLowerCase();
+  for (const cat of OTT_CATS) {
+    if (r.includes(cat.toLowerCase())) return cat;
+  }
+  if (r.includes('sick') || r.includes('call in')) return 'Sick Leave';
+  if (r.includes('vacation') || r.includes('travel') || r.includes('personal matters') || r.includes('birthday') || r.includes('personal day')) return 'Vacation';
+  if (r.includes('bereavement')) return 'Bereavement';
+  if (r.includes('emergency')) return 'Emergency';
+  if (r.includes('undertime')) return 'Others';
+  return 'Others';
+}
+
+function ottFmt(n) {
+  if (n === 0) return '0';
+  return Number.isInteger(n) ? String(n) : parseFloat(n.toFixed(2)).toString();
+}
+
+async function ottLoad() {
+  const loading = document.getElementById('ott-loading');
+  const errEl   = document.getElementById('ott-err');
+  loading.style.display = 'block';
+  errEl.style.display = 'none';
+  try {
+    const res  = await fetch(OTT_API);
+    const text = await res.text();
+    const json = JSON.parse(text.replace(/^.*?setResponse\(/, '').replace(/\);\s*$/, ''));
+    const rows = json.table.rows || [];
+
+    ottAllRows = rows.map(r => {
+      const get = i => (r.c[i] && r.c[i].v != null) ? r.c[i].v : '';
+      const gf  = i => (r.c[i] && r.c[i].f)        ? r.c[i].f  : String(get(i) || '');
+
+      const rawType = String(get(4) || '').trim();
+      const type    = ottNormaliseType(rawType);
+      const isOT    = type === 'Overtime';
+
+      // Date — OT uses col 5, TimeOff uses col 9
+      let dateStr = '';
+      const dRaw = get(isOT ? 5 : 9);
+      if (dRaw) {
+        const df = gf(isOT ? 5 : 9);
+        if (df) {
+          // GViz formatted dates come as "M/D/YYYY"
+          const parts = String(df).split('/');
+          if (parts.length === 3) {
+            dateStr = parts[2].padStart(4,'0') + '-' + parts[0].padStart(2,'0') + '-' + parts[1].padStart(2,'0');
+          } else {
+            dateStr = String(df);
+          }
+        }
+      }
+
+      // OT hours — handle "30mins"
+      let otHrs = 0;
+      const otRaw = String(get(6) || '').trim();
+      if (otRaw) {
+        const m = otRaw.match(/[\d.]+/);
+        if (m) { otHrs = parseFloat(m[0]); if (otRaw.toLowerCase().includes('min')) otHrs = otHrs / 60; }
+      }
+
+      const toHrs  = parseFloat(get(11)) || 0;
+      const toDays = toHrs / 8;
+      const rawCat = String(get(8) || '').trim();
+      const category = ottNormaliseCat(rawCat);
+      const status   = String(get(14) || '').trim();
+
+      return {
+        name:     String(get(2) || '').trim(),
+        type,
+        date:     dateStr,
+        otHrs,
+        otNote:   String(get(7) || '').trim(),
+        category,
+        toStart:  gf(9),
+        toEnd:    gf(10),
+        toHrs,
+        toDays,
+        toNote:   String(get(12) || '').trim(),
+        status,
+      };
+    }).filter(r => r.name && r.type);
+
+    // Populate agent dropdown
+    const names = [...new Set(ottAllRows.map(r => r.name))].sort();
+    const sel = document.getElementById('ott-agent');
+    sel.innerHTML = '<option value="">All Agents</option>';
+    names.forEach(n => { const o = new Option(n, n); sel.add(o); });
+
+    // Set date range defaults
+    const dates = ottAllRows.map(r => r.date).filter(Boolean).sort();
+    if (dates.length) {
+      document.getElementById('ott-start').value = dates[0];
+      document.getElementById('ott-end').value   = dates[dates.length - 1];
+    }
+
+    ottLoaded = true;
+    loading.style.display = 'none';
+    ottApply();
+
+  } catch(e) {
+    loading.style.display = 'none';
+    errEl.textContent = 'Could not load OT-TimeOff data. Make sure the sheet is shared publicly (View access). Error: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function ottApply() {
+  const agent  = document.getElementById('ott-agent').value;
+  const start  = document.getElementById('ott-start').value;
+  const end    = document.getElementById('ott-end').value;
+  const type   = document.getElementById('ott-type').value;
+  const cat    = document.getElementById('ott-cat').value;
+  const status = document.getElementById('ott-status').value;
+
+  ottFiltered = ottAllRows.filter(r => {
+    if (agent  && r.name     !== agent)  return false;
+    if (type   && r.type     !== type)   return false;
+    if (status && r.status   !== status) return false;
+    if (cat    && r.category !== cat)    return false;
+    if (start  && r.date     && r.date < start) return false;
+    if (end    && r.date     && r.date > end)   return false;
+    return true;
+  });
+
+  ottFiltered.sort((a,b) => (b.date||'') < (a.date||'') ? -1 : 1);
+
+  const s = start ? fmtDate(new Date(start + 'T00:00:00')) : '--';
+  const e = end   ? fmtDate(new Date(end   + 'T00:00:00')) : '--';
+  document.getElementById('ott-showing').textContent =
+    `Showing: ${s} to ${e} | Total: ${ottFiltered.length} records`;
+
+  ottRenderCards();
+  ottRenderPanel('ott-panel-ot-agent',  ottBuildOTByAgent());
+  ottRenderPanel('ott-panel-to-cat',    ottBuildTOByCat());
+  ottRenderPanel('ott-panel-to-agent',  ottBuildTOByAgent());
+  ottRenderPanel('ott-panel-ot-monthly',ottBuildOTMonthly());
+  ottRenderTable();
+}
+
+function ottReset() {
+  document.getElementById('ott-agent').value  = '';
+  document.getElementById('ott-type').value   = '';
+  document.getElementById('ott-cat').value    = '';
+  document.getElementById('ott-status').value = '';
+  const dates = ottAllRows.map(r => r.date).filter(Boolean).sort();
+  if (dates.length) {
+    document.getElementById('ott-start').value = dates[0];
+    document.getElementById('ott-end').value   = dates[dates.length - 1];
+  }
+  ottApply();
+}
+
+function ottRenderCards() {
+  const ot = ottFiltered.filter(r => r.type === 'Overtime');
+  const to = ottFiltered.filter(r => r.type === 'Time Off');
+  const totalOT   = ot.reduce((s,r) => s + r.otHrs, 0);
+  const totalDays = to.reduce((s,r) => s + r.toDays, 0);
+  const agents    = new Set(ottFiltered.map(r => r.name)).size;
+  document.getElementById('ott-s-entries').textContent = ottFiltered.length;
+  document.getElementById('ott-s-ot').textContent      = ottFmt(totalOT) + ' hrs';
+  document.getElementById('ott-s-ot-sub').textContent  = ot.length + ' ' + (ot.length === 1 ? 'entry' : 'entries');
+  document.getElementById('ott-s-to').textContent      = ottFmt(totalDays) + ' days';
+  document.getElementById('ott-s-to-sub').textContent  = to.length + ' ' + (to.length === 1 ? 'entry' : 'entries');
+  document.getElementById('ott-s-agents').textContent  = agents;
+}
+
+function ottRenderPanel(id, html) {
+  document.getElementById(id).innerHTML = html || '<div class="p" style="font-size:11px;padding:4px 0">No data for current filters.</div>';
+}
+
+function ottBarRows(entries, fillClass) {
+  if (!entries.length) return '';
+  const max = entries[0][1];
+  return entries.map(([lbl, val, fmt]) =>
+    `<div class="ott-brow">
+      <div class="ott-blbl" title="${lbl}">${lbl}</div>
+      <div class="ott-btrk"><div class="ott-bfil ${fillClass}" style="width:${max ? (val/max*100) : 0}%"></div></div>
+      <div class="ott-bnum">${fmt}</div>
+    </div>`
+  ).join('');
+}
+
+function ottBuildOTByAgent() {
+  const map = {};
+  ottFiltered.filter(r => r.type === 'Overtime').forEach(r => { map[r.name] = (map[r.name]||0) + r.otHrs; });
+  const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).map(([n,h]) => [n, h, ottFmt(h) + ' hrs']);
+  return ottBarRows(sorted, 'ot');
+}
+
+function ottBuildTOByCat() {
+  const map = {};
+  ottFiltered.filter(r => r.type === 'Time Off').forEach(r => { const c = r.category||'Others'; map[c] = (map[c]||0) + r.toDays; });
+  const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).map(([c,d]) => [c, d, ottFmt(d) + ' days']);
+  return ottBarRows(sorted, 'to');
+}
+
+function ottBuildTOByAgent() {
+  const map = {};
+  ottFiltered.filter(r => r.type === 'Time Off').forEach(r => { map[r.name] = (map[r.name]||0) + r.toDays; });
+  const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]).map(([n,d]) => [n, d, ottFmt(d) + ' days']);
+  return ottBarRows(sorted, 'to');
+}
+
+function ottBuildOTMonthly() {
+  const map = {};
+  ottFiltered.filter(r => r.type === 'Overtime' && r.date).forEach(r => {
+    const ym = r.date.substring(0,7);
+    map[ym] = (map[ym]||0) + r.otHrs;
+  });
+  const sorted = Object.entries(map).sort((a,b) => a[0].localeCompare(b[0])).map(([ym, hrs]) => {
+    const [y,m] = ym.split('-');
+    const label = new Date(+y, +m-1, 1).toLocaleString('default',{month:'short',year:'2-digit'});
+    return [label, hrs, ottFmt(hrs) + ' hrs'];
+  });
+  return ottBarRows(sorted, 'ot');
+}
+
+function ottStatusBadge(s) {
+  if (!s) return '<span class="ott-badge na">Pending</span>';
+  if (s === 'Approved')     return '<span class="ott-badge ap">Approved</span>';
+  if (s === 'Cancelled')    return '<span class="ott-badge ca">Cancelled</span>';
+  if (s === 'Not Approved') return '<span class="ott-badge ca">Not Approved</span>';
+  return '<span class="ott-badge na">' + s + '</span>';
+}
+
+function ottRenderTable() {
+  const tbody = document.getElementById('ott-tbody');
+  document.getElementById('ott-result-count').textContent =
+    'Showing ' + ottFiltered.length + ' of ' + ottAllRows.length + ' records';
+
+  if (!ottFiltered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--mut);padding:20px">No records match the current filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = ottFiltered.map(r => {
+    const isOT   = r.type === 'Overtime';
+    const badge  = isOT
+      ? '<span class="ott-badge ot">Overtime</span>'
+      : '<span class="ott-badge to">Time Off</span>';
+    const detail = isOT ? r.otNote : (r.category + (r.toNote ? ' — ' + r.toNote : ''));
+    const otCell = isOT  ? '<span class="ott-td-ot">' + ottFmt(r.otHrs) + ' hrs</span>' : '';
+    const toCell = !isOT ? '<span class="ott-td-to">' + ottFmt(r.toHrs) + ' hrs</span>' : '';
+    const period = !isOT && r.toStart
+      ? r.toStart + (r.toEnd && r.toEnd !== r.toStart ? ' to ' + r.toEnd : '')
+      : r.date;
+    return `<tr>
+      <td>${r.date||''}</td>
+      <td>${r.name}</td>
+      <td>${badge}</td>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left">${detail}</td>
+      <td>${otCell}</td>
+      <td>${toCell}</td>
+      <td style="text-align:left">${period||''}</td>
+      <td style="text-align:left">${ottStatusBadge(r.status)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Load OT-TimeOff data when that tab is first clicked
+(function() {
+  const origGo = window.go;
+  window.go = function(id, btn) {
+    origGo(id, btn);
+    if (id === 'ott' && !ottLoaded) {
+      ottLoad();
+    }
+  };
+})();
 
 // ═══════════════════════════════════════════════════
 // INIT — load Fulfillment on page load
