@@ -285,24 +285,39 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
   <div class="sbar"    id="ags-showing">Loading...</div>
 
   <!-- TEAM SUMMARY -->
-  <div class="sh">Team Summary</div>
+  <div class="sh" style="margin-top:0">Team Summary</div>
   <div class="ags-team-grid" id="ags-team-grid">
-    <div class="ags-team-cell"><div class="ags-team-label">Total Messages</div><div class="ags-team-val" id="ags-ts-msgs">--</div><div class="ags-team-sub">avg (Messages Sent, col BL)</div></div>
-    <div class="ags-team-cell tb"><div class="ags-team-label">Days Worked</div><div class="ags-team-val" id="ags-ts-days">--</div><div class="ags-team-sub">avg (login sec / 28800)</div></div>
-    <div class="ags-team-cell"><div class="ags-team-label">Avg Responses / Day</div><div class="ags-team-val" id="ags-ts-rpd">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell"><div class="ags-team-label">Avg Customers / Day</div><div class="ags-team-val" id="ags-ts-cpd">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell ta"><div class="ags-team-label">Handle Time / Cust (min)</div><div class="ags-team-val" id="ags-ts-htc">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell tb"><div class="ags-team-label">Customer / Hr</div><div class="ags-team-val" id="ags-ts-cph">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell"><div class="ags-team-label">Responses / Hr</div><div class="ags-team-val" id="ags-ts-rph">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell tg"><div class="ags-team-label">% Login Time Utilized</div><div class="ags-team-val" id="ags-ts-ltu">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell tb"><div class="ags-team-label">Hours Active / Day</div><div class="ags-team-val" id="ags-ts-had">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell ta"><div class="ags-team-label">Away Hours Time</div><div class="ags-team-val" id="ags-ts-awt">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell tb">
+      <div class="ags-team-label">Total Messages Handled</div>
+      <div class="ags-team-val" id="ags-ts-total-msgs">--</div>
+      <div class="ags-team-sub">Sum of Messages Sent (col L)</div>
+    </div>
+    <div class="ags-team-cell">
+      <div class="ags-team-label">Avg Messages Handled / Day</div>
+      <div class="ags-team-val" id="ags-ts-avg-msgs">--</div>
+      <div class="ags-team-sub">Avg of Messages Sent (col L)</div>
+    </div>
+    <div class="ags-team-cell ta">
+      <div class="ags-team-label">Handle Time / Cust (min)</div>
+      <div class="ags-team-val" id="ags-ts-htc">--</div>
+      <div class="ags-team-sub">Avg of col CA converted to min</div>
+    </div>
+    <div class="ags-team-cell tg">
+      <div class="ags-team-label">Avg Customers / Day</div>
+      <div class="ags-team-val" id="ags-ts-cpd">--</div>
+      <div class="ags-team-sub">Conv. Closed (col AI) / Days Worked &gt; 4hr</div>
+    </div>
+    <div class="ags-team-cell tb">
+      <div class="ags-team-label">Customer / Hr</div>
+      <div class="ags-team-val" id="ags-ts-cph">--</div>
+      <div class="ags-team-sub">Total Conv. Closed / Active Hours Logged</div>
+    </div>
   </div>
 
-  <!-- AGENT BREAKDOWN TABLE -->
+  <!-- AGENT SUMMARY TABLE -->
   <div class="sp"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-    <div class="sh" style="margin-top:0;flex:1">Agent Breakdown</div>
+    <div class="sh" style="margin-top:0;flex:1">Agent Summary</div>
     <div class="ags-result" id="ags-result-count" style="margin-right:4px"></div>
   </div>
   <div class="tw ox">
@@ -314,24 +329,15 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
           <th style="text-align:left">Role</th>
           <th>Date Range</th>
           <th>Total Messages</th>
-          <th>Days Worked</th>
+          <th>Avg Msg / Day</th>
           <th>Conv. Closed</th>
-          <th>Resp / Day</th>
-          <th>Cust / Day</th>
+          <th>Handle Time / Cust (min)</th>
+          <th>Avg Cust / Day</th>
           <th>Cust / Hr</th>
-          <th>Resp / Hr</th>
-          <th>Handle Time (min)</th>
-          <th>Hrs Active / Day</th>
-          <th>Away Hrs</th>
-          <th>% Login</th>
-          <th>AHT Email</th>
-          <th>AHT Chat</th>
-          <th>Emails Sent</th>
-          <th>Chats Sent</th>
         </tr>
       </thead>
       <tbody id="ags-tbody">
-        <tr><td colspan="19" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+        <tr><td colspan="10" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -1550,6 +1556,12 @@ async function agsLoad() {
       msgs:       hIdx('total messages','messages +'),
       // col BL (0-based 63) = Messages Sent — match by header first, then fixed index
       msgsSent:   (()=>{ const i=hIdx('messages sent','msgs sent'); return i>=0?i:63; })(),
+      // col L  (0-based 11) = Messages Sent (col L per spec)
+      msgsSentL:  11,
+      // col CA (0-based 78) = Customer Handle Time in seconds
+      custHandleSec: (()=>{ const i=hIdx('customer handle time','handle time (sec','cust handle'); return i>=0?i:78; })(),
+      // col AI (0-based 34) = Conversations Closed (col AI per spec)
+      convAI:     34,
       // col N (0-based 13) = Login Time in seconds
       loginSec:   (()=>{ const i=hIdx('login time','login duration','login time (seconds'); return i>=0?i:13; })(),
       days:       hIdx('count of days','days worked'),
@@ -1598,7 +1610,10 @@ async function agsLoad() {
         role:       agsGetStr(row, CI.role),
         fromDate, toDate, fromRaw, toRaw,
         msgs:       agsGetNum(row, CI.msgs),
-        msgsSent:   msgsSentRaw,
+        msgsSent:      msgsSentRaw,
+        msgsSentL:     agsGetNum(row, CI.msgsSentL),
+        custHandleSec: agsGetNum(row, CI.custHandleSec),
+        convAI:        agsGetNum(row, CI.convAI),
         loginSec:   loginSecRaw,
         daysWorked,
         days:       agsGetNum(row, CI.days),
@@ -1691,7 +1706,7 @@ function agsApply() {
     `Showing ${agsFiltered.length} of ${agsAllRows.length} records`;
 
   agsRenderTeamSummary();
-  agsRenderTable();
+  agsRenderAgentTable();
   agsRenderBars();
 }
 
@@ -1726,59 +1741,69 @@ function agsReset() {
 // ── Team Summary tiles ────────────────────────────────
 function agsRenderTeamSummary() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  // Total Messages — avg of Messages Sent (col BL)
-  set('ags-ts-msgs', agsFmt(agsAvg(agsFiltered, 'msgsSent'), 0));
-  // Days Worked — avg of (Login Seconds / 28800); show 1 decimal
-  set('ags-ts-days', agsFmt(agsAvg(agsFiltered, 'daysWorked'), 1));
-  set('ags-ts-rpd',  agsFmt(agsAvg(agsFiltered, 'rpd'), 1));
-  set('ags-ts-cpd',  agsFmt(agsAvg(agsFiltered, 'cpd'), 1));
-  set('ags-ts-htc',  agsFmt(agsAvg(agsFiltered, 'htc'), 1));
-  set('ags-ts-cph',  agsFmt(agsAvg(agsFiltered, 'cph'), 2));
-  set('ags-ts-rph',  agsFmt(agsAvg(agsFiltered, 'rph'), 2));
-  const ltuAvg = agsAvg(agsFiltered, 'ltu');
-  set('ags-ts-ltu',  ltuAvg !== null ? agsFmtPct(ltuAvg) : '--');
-  set('ags-ts-had',  agsFmt(agsAvg(agsFiltered, 'had'), 2));
-  set('ags-ts-awt',  agsFmt(agsAvg(agsFiltered, 'awt'), 2));
+
+  // 1. Total Messages Handled — sum of Messages Sent (col L)
+  const totalMsgs = agsSum(agsFiltered, 'msgsSentL');
+  set('ags-ts-total-msgs', totalMsgs !== null ? totalMsgs.toLocaleString() : '--');
+
+  // 2. Avg Messages Handled per Day — avg of Messages Sent (col L)
+  const avgMsgs = agsAvg(agsFiltered, 'msgsSentL');
+  set('ags-ts-avg-msgs', agsFmt(avgMsgs, 1));
+
+  // 3. Handle Time / Cust (min) — avg of col CA (seconds) converted to minutes
+  const htcSecAvg = agsAvg(agsFiltered, 'custHandleSec');
+  set('ags-ts-htc', htcSecAvg !== null ? agsFmt(htcSecAvg / 60, 1) : '--');
+
+  // 4. Avg Customers / Day — sum(convAI) / sum(days where login > 4hr, i.e. loginSec > 14400)
+  const totalConvAI = agsFiltered.reduce((s, r) => r.convAI !== null ? s + r.convAI : s, 0);
+  const totalDaysGt4 = agsFiltered.reduce((s, r) => {
+    // days field = count of days worked; use loginSec-based threshold: >4hr per period means loginSec > 14400
+    // Since each row is a period summary, use the days field directly as the denominator
+    return r.days !== null && r.days > 0 ? s + r.days : s;
+  }, 0);
+  set('ags-ts-cpd', totalDaysGt4 > 0 ? agsFmt(totalConvAI / totalDaysGt4, 2) : '--');
+
+  // 5. Customer / Hr — total conv closed (col AI) / total active hours logged
+  const totalHoursLog = agsSum(agsFiltered, 'hoursLog');
+  set('ags-ts-cph', (totalConvAI > 0 && totalHoursLog !== null && totalHoursLog > 0)
+    ? agsFmt(totalConvAI / totalHoursLog, 2) : '--');
 }
 
-// ── Agent table ───────────────────────────────────────
-function agsLtuCell(v) {
-  if (v === null || isNaN(v)) return '--';
-  const pctVal = v > 1 ? v : v * 100;
-  const fmt = parseFloat(pctVal.toFixed(2)) + '%';
-  if (pctVal >= 90) return `<span class="ags-hl-grn">${fmt}</span>`;
-  if (pctVal >= 75) return `<span class="ags-hl-ylw">${fmt}</span>`;
-  return `<span class="ags-hl-red">${fmt}</span>`;
-}
-
-function agsRenderTable() {
+// ── Agent Summary table ───────────────────────────────
+function agsRenderAgentTable() {
   const tbody = document.getElementById('ags-tbody');
+  if (!tbody) return;
   if (!agsFiltered.length) {
-    tbody.innerHTML = '<tr><td colspan="19" style="text-align:center;color:var(--mut);padding:20px">No records match the current filters.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--mut);padding:20px">No records match the current filters.</td></tr>';
     return;
   }
-  tbody.innerHTML = agsFiltered.map(r => `<tr>
-    <td style="text-align:left;font-weight:700;white-space:nowrap">${r.name}</td>
-    <td style="text-align:left;white-space:nowrap">${r.team || '--'}</td>
-    <td style="text-align:left;white-space:nowrap">${r.role || '--'}</td>
-    <td style="white-space:nowrap">${r.fromRaw || ''} - ${r.toRaw || ''}</td>
-    <td>${r.msgs !== null ? r.msgs.toLocaleString() : '--'}</td>
-    <td>${agsFmt(r.days,0)}</td>
-    <td>${r.conv !== null ? r.conv.toLocaleString() : '--'}</td>
-    <td>${agsFmt(r.rpd,1)}</td>
-    <td>${agsFmt(r.cpd,1)}</td>
-    <td>${agsFmt(r.cph,2)}</td>
-    <td>${agsFmt(r.rph,2)}</td>
-    <td>${agsFmt(r.htc,1)}</td>
-    <td>${agsFmt(r.had,2)}</td>
-    <td>${agsFmt(r.awt,2)}</td>
-    <td>${agsLtuCell(r.ltu)}</td>
-    <td>${agsFmt(r.ahtEmail,1)}</td>
-    <td>${agsFmt(r.ahtChat,1)}</td>
-    <td>${agsFmt(r.emailsSent,0)}</td>
-    <td>${agsFmt(r.chatsSent,0)}</td>
-  </tr>`).join('');
+  tbody.innerHTML = agsFiltered.map(r => {
+    // Per-agent avg customers/day: convAI / days (where days > 0)
+    const agentCpd = (r.convAI !== null && r.days !== null && r.days > 0)
+      ? agsFmt(r.convAI / r.days, 2) : '--';
+    // Per-agent customer/hr: convAI / hoursLog
+    const agentCph = (r.convAI !== null && r.hoursLog !== null && r.hoursLog > 0)
+      ? agsFmt(r.convAI / r.hoursLog, 2) : '--';
+    // Handle time in min: custHandleSec / 60
+    const agentHtc = r.custHandleSec !== null
+      ? agsFmt(r.custHandleSec / 60, 1) : '--';
+
+    return `<tr>
+      <td style="text-align:left;font-weight:700;white-space:nowrap">${r.name}</td>
+      <td style="text-align:left;white-space:nowrap">${r.team || '--'}</td>
+      <td style="text-align:left;white-space:nowrap">${r.role || '--'}</td>
+      <td style="white-space:nowrap">${r.fromRaw || ''} - ${r.toRaw || ''}</td>
+      <td>${r.msgsSentL !== null ? r.msgsSentL.toLocaleString() : '--'}</td>
+      <td>${r.msgsSentL !== null && r.days !== null && r.days > 0 ? agsFmt(r.msgsSentL / r.days, 1) : '--'}</td>
+      <td>${r.convAI !== null ? r.convAI.toLocaleString() : '--'}</td>
+      <td>${agentHtc}</td>
+      <td>${agentCpd}</td>
+      <td>${agentCph}</td>
+    </tr>`;
+  }).join('');
 }
+
+
 
 // ── Bar charts ────────────────────────────────────────
 function agsBarBlock(entries, unit, fillClass) {
