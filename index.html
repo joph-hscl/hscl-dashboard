@@ -79,9 +79,6 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .blbl{width:110px;font-size:11px;font-weight:600;flex-shrink:0}
 .btrk{flex:1;height:15px;background:#e8e8e8;border-radius:3px;overflow:hidden}
 .bfil{height:100%;border-radius:3px}
-.bg-blue{background:var(--blue)}
-.bg-grn{background:#27ae7a}
-.bg-ylw{background:#e8960a}
 .bfg{background:#27ae60}.bfr{background:#e74c3c}.bfa{background:#f39c12}
 .bnum{width:70px;text-align:right;font-size:11px;font-weight:700}
 
@@ -146,27 +143,54 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .ott-result{font-size:10.5px;color:var(--mut);font-weight:600}
 
 /* ── AGENT SUMMARY TAB ── */
-.ags-frow{background:#fff;border:1px solid var(--bdr);border-top:none;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ags-fg{display:flex;flex-direction:column;gap:3px}
+.ags-frow{background:#fff;border:1px solid var(--bdr);border-top:none;padding:10px 16px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ags-fg{display:flex;flex-direction:column;gap:4px;position:relative}
 .ags-fg label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--navy)}
-.ags-fg select,.ags-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);min-width:130px;color:var(--txt)}
+.ags-fg select,.ags-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);min-width:140px;color:var(--txt)}
 .ags-fg select:focus,.ags-fg input:focus{outline:2px solid var(--blue)}
-.ags-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;background:#fff;border:1px solid var(--bdr);border-top:none;padding:12px}
-.ags-kpi{border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;background:var(--grey);text-align:center}
-.ags-kpi .kl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:5px;line-height:1.3}
-.ags-kpi .kv{font-size:20px;font-weight:800;line-height:1;color:var(--navy)}
-.ags-kpi.kb{background:#e8f4fb;border-color:#aed6f1}.ags-kpi.kb .kv{color:var(--teal)}
-.ags-kpi.kg{background:var(--gbg);border-color:var(--gbr)}.ags-kpi.kg .kv{color:var(--gfg)}
-.ags-kpi.ka{background:var(--amb);border-color:var(--abr)}.ags-kpi.ka .kv{color:var(--afg)}
-.ags-agent-sel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:#fff;border:1px solid var(--bdr);border-top:none}
-.ags-agent-btn{background:var(--grey);border:1.5px solid var(--bdr);border-radius:3px;padding:5px 12px;font:600 11px/1 var(--font);cursor:pointer;color:var(--navy);transition:all .15s;white-space:nowrap}
-.ags-agent-btn:hover,.ags-agent-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* multi-select dropdown */
+.ags-multi-wrap{position:relative;min-width:155px}
+.ags-multi-btn{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 26px 5px 8px;font:600 12px/1.4 var(--font);color:var(--txt);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:left;position:relative}
+.ags-multi-btn::after{content:"▾";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--mut)}
+.ags-multi-btn.has-sel{background:#d4e8ff;border-color:var(--blue)}
+.ags-dropdown{display:none;position:absolute;top:calc(100% + 3px);left:0;min-width:200px;background:#fff;border:1.5px solid var(--blue);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:999;max-height:220px;overflow-y:auto}
+.ags-dropdown.open{display:block}
+.ags-dd-search{padding:6px 8px;border-bottom:1px solid var(--bdr)}
+.ags-dd-search input{width:100%;border:1px solid var(--bdr);border-radius:3px;padding:4px 7px;font:12px var(--font);outline:none}
+.ags-dd-item{display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:500;transition:background .1s}
+.ags-dd-item:hover{background:var(--grey)}
+.ags-dd-item input[type=checkbox]{accent-color:var(--blue);width:13px;height:13px;flex-shrink:0;cursor:pointer}
+.ags-dd-item label{cursor:pointer;line-height:1.3}
+.ags-dd-sep{border-top:1px solid var(--bdr);margin:3px 0}
+.ags-dd-all{font-weight:700;color:var(--navy);background:var(--grey)}
+
+/* bar fill colors */
+.bg-blue{background:var(--blue)}
+.bg-grn{background:#27ae7a}
+.bg-ylw{background:#e8960a}
+.bg-red{background:#e74c3c}
+
+/* team summary grid */
+.ags-team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0;background:#fff;border:1px solid var(--bdr);border-top:none}
+.ags-team-cell{border-right:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:11px 14px}
+.ags-team-cell:nth-child(5n){border-right:none}
+.ags-team-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:5px;line-height:1.3}
+.ags-team-val{font-size:20px;font-weight:800;line-height:1;color:var(--navy)}
+.ags-team-sub{font-size:9.5px;color:var(--mut);margin-top:3px}
+.ags-team-cell.tb .ags-team-val{color:var(--teal)}
+.ags-team-cell.tg .ags-team-val{color:var(--gfg)}
+.ags-team-cell.ta .ags-team-val{color:var(--afg)}
+.ags-team-cell.tr .ags-team-val{color:var(--rfg)}
+
+/* table highlights */
+.ags-hl-grn{background:#c6efce;color:#276221;font-weight:700;padding:2px 6px;border-radius:3px;display:inline-block}
+.ags-hl-red{background:#ffc7ce;color:#9c0006;font-weight:700;padding:2px 6px;border-radius:3px;display:inline-block}
+.ags-hl-ylw{background:#ffeb9c;color:#9c6500;font-weight:700;padding:2px 6px;border-radius:3px;display:inline-block}
 .ags-cmp-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
 .ags-cmp-hs{background:#e8f4fb;color:var(--teal)}
 .ags-cmp-cl{background:var(--gbg);color:var(--gfg)}
-.ags-hl-grn{background:#c6efce;color:#276221;font-weight:700}
-.ags-hl-red{background:#ffc7ce;color:#9c0006;font-weight:700}
-.ags-hl-ylw{background:#ffeb9c;color:#9c6500;font-weight:700}
+.ags-result{font-size:10.5px;color:var(--mut);font-weight:600}
 </style>
 </head>
 <body>
@@ -192,11 +216,57 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <div class="sub" id="ags-sub">Source: Agent/Team KPI — Agent Summary Sheet</div>
   </div>
   <div class="fbar">FILTERS — Select options then click Refresh.</div>
+
+  <!-- FILTER ROW -->
   <div class="ags-frow">
+
+    <!-- Agent multi-select -->
     <div class="ags-fg">
       <label>Agent Name</label>
-      <select id="ags-agent"><option value="">All Agents</option></select>
+      <div class="ags-multi-wrap" id="ags-agent-wrap">
+        <button type="button" class="ags-multi-btn" id="ags-agent-btn" onclick="agsToggleDd('agent')">All Agents</button>
+        <div class="ags-dropdown" id="ags-agent-dd">
+          <div class="ags-dd-search"><input type="text" placeholder="Search agents..." oninput="agsSearchDd('agent',this.value)"></div>
+          <div class="ags-dd-item ags-dd-all" onclick="agsSelectAll('agent')">
+            <input type="checkbox" id="ags-agent-all" checked> <label for="ags-agent-all">All Agents</label>
+          </div>
+          <div class="ags-dd-sep"></div>
+          <div id="ags-agent-list"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Role multi-select -->
+    <div class="ags-fg">
+      <label>Role</label>
+      <div class="ags-multi-wrap" id="ags-role-wrap">
+        <button type="button" class="ags-multi-btn" id="ags-role-btn" onclick="agsToggleDd('role')">All Roles</button>
+        <div class="ags-dropdown" id="ags-role-dd">
+          <div class="ags-dd-item ags-dd-all" onclick="agsSelectAll('role')">
+            <input type="checkbox" id="ags-role-all" checked> <label for="ags-role-all">All Roles</label>
+          </div>
+          <div class="ags-dd-sep"></div>
+          <div id="ags-role-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team multi-select -->
+    <div class="ags-fg">
+      <label>Team</label>
+      <div class="ags-multi-wrap" id="ags-team-wrap">
+        <button type="button" class="ags-multi-btn" id="ags-team-btn" onclick="agsToggleDd('team')">All Teams</button>
+        <div class="ags-dropdown" id="ags-team-dd">
+          <div class="ags-dd-item ags-dd-all" onclick="agsSelectAll('team')">
+            <input type="checkbox" id="ags-team-all" checked> <label for="ags-team-all">All Teams</label>
+          </div>
+          <div class="ags-dd-sep"></div>
+          <div id="ags-team-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date range -->
     <div class="ags-fg">
       <label>Start Date</label>
       <input type="date" id="ags-start" />
@@ -205,52 +275,43 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
       <label>End Date</label>
       <input type="date" id="ags-end" />
     </div>
-    <div class="ags-fg">
-      <label>Company</label>
-      <select id="ags-company">
-        <option value="">All</option>
-        <option value="High Social">High Social</option>
-        <option value="Cloutify">Cloutify</option>
-      </select>
-    </div>
+
     <button class="rbtn" onclick="agsApply()">Refresh</button>
     <button class="rbtn" style="background:var(--mut)" onclick="agsReset()">Reset</button>
   </div>
-  <div class="loading" id="ags-loading">Loading data from tracker...</div>
-  <div class="err" id="ags-err"></div>
-  <div class="sbar" id="ags-showing">Loading...</div>
 
-  <!-- KPI TILES -->
-  <div class="sh">Key Performance Indicators</div>
-  <div class="ags-kpi-grid" id="ags-kpi-grid">
-    <div class="ags-kpi"><div class="kl">Total Messages</div><div class="kv" id="ags-k-msgs">--</div></div>
-    <div class="ags-kpi kb"><div class="kl">Days Worked</div><div class="kv" id="ags-k-days">--</div></div>
-    <div class="ags-kpi"><div class="kl">Conversations Closed</div><div class="kv" id="ags-k-conv">--</div></div>
-    <div class="ags-kpi kb"><div class="kl">Avg Responses / Day</div><div class="kv" id="ags-k-rpd">--</div></div>
-    <div class="ags-kpi"><div class="kl">Avg Customers / Day</div><div class="kv" id="ags-k-cpd">--</div></div>
-    <div class="ags-kpi kb"><div class="kl">Customer / Hour</div><div class="kv" id="ags-k-cph">--</div></div>
-    <div class="ags-kpi ka"><div class="kl">Handle Time / Customer (min)</div><div class="kv" id="ags-k-htc">--</div></div>
-    <div class="ags-kpi kb"><div class="kl">Hours Active / Day</div><div class="kv" id="ags-k-had">--</div></div>
-    <div class="ags-kpi ka"><div class="kl">Away Hours Time</div><div class="kv" id="ags-k-awt">--</div></div>
-    <div class="ags-kpi kg"><div class="kl">% Login Time Utilized</div><div class="kv" id="ags-k-ltu">--</div></div>
-    <div class="ags-kpi"><div class="kl">AHT Email (min)</div><div class="kv" id="ags-k-ahe">--</div></div>
-    <div class="ags-kpi"><div class="kl">AHT Chat (min)</div><div class="kv" id="ags-k-ahc">--</div></div>
-    <div class="ags-kpi kb"><div class="kl">Emails Sent</div><div class="kv" id="ags-k-ems">--</div></div>
-    <div class="ags-kpi kb"><div class="kl">Chats Sent</div><div class="kv" id="ags-k-chs">--</div></div>
+  <div class="loading" id="ags-loading">Loading data from tracker...</div>
+  <div class="err"     id="ags-err"></div>
+  <div class="sbar"    id="ags-showing">Loading...</div>
+
+  <!-- TEAM SUMMARY -->
+  <div class="sh">Team Summary</div>
+  <div class="ags-team-grid" id="ags-team-grid">
+    <div class="ags-team-cell"><div class="ags-team-label">Total Messages</div><div class="ags-team-val" id="ags-ts-msgs">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell tb"><div class="ags-team-label">Days Worked</div><div class="ags-team-val" id="ags-ts-days">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell"><div class="ags-team-label">Avg Responses / Day</div><div class="ags-team-val" id="ags-ts-rpd">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell"><div class="ags-team-label">Avg Customers / Day</div><div class="ags-team-val" id="ags-ts-cpd">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell ta"><div class="ags-team-label">Handle Time / Cust (min)</div><div class="ags-team-val" id="ags-ts-htc">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell tb"><div class="ags-team-label">Customer / Hr</div><div class="ags-team-val" id="ags-ts-cph">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell"><div class="ags-team-label">Responses / Hr</div><div class="ags-team-val" id="ags-ts-rph">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell tg"><div class="ags-team-label">% Login Time Utilized</div><div class="ags-team-val" id="ags-ts-ltu">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell tb"><div class="ags-team-label">Hours Active / Day</div><div class="ags-team-val" id="ags-ts-had">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell ta"><div class="ags-team-label">Away Hours Time</div><div class="ags-team-val" id="ags-ts-awt">--</div><div class="ags-team-sub">team avg</div></div>
   </div>
 
-  <!-- AGENT COMPARISON TABLE -->
+  <!-- AGENT BREAKDOWN TABLE -->
   <div class="sp"></div>
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
     <div class="sh" style="margin-top:0;flex:1">Agent Breakdown</div>
-    <div class="ott-result" id="ags-result-count" style="margin-right:4px"></div>
+    <div class="ags-result" id="ags-result-count" style="margin-right:4px"></div>
   </div>
   <div class="tw ox">
     <table id="ags-table">
       <thead>
         <tr>
-          <th style="text-align:left;position:sticky;left:0;background:var(--navy)">Agent</th>
-          <th style="text-align:left">Company</th>
+          <th style="text-align:left;min-width:140px">Agent</th>
+          <th style="text-align:left">Team</th>
+          <th style="text-align:left">Role</th>
           <th>Date Range</th>
           <th>Total Messages</th>
           <th>Days Worked</th>
@@ -258,6 +319,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
           <th>Resp / Day</th>
           <th>Cust / Day</th>
           <th>Cust / Hr</th>
+          <th>Resp / Hr</th>
           <th>Handle Time (min)</th>
           <th>Hrs Active / Day</th>
           <th>Away Hrs</th>
@@ -269,12 +331,12 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
         </tr>
       </thead>
       <tbody id="ags-tbody">
-        <tr><td colspan="17" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+        <tr><td colspan="19" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
       </tbody>
     </table>
   </div>
 
-  <!-- PER-AGENT BAR CHARTS -->
+  <!-- BAR CHARTS -->
   <div class="sp"></div>
   <div class="g2">
     <div>
@@ -1330,38 +1392,111 @@ function cp() {
 const AGS_SHEET_ID = '1Yw2KZgzyKvFuTLrLtO5sNoWpKbfgH5HfH3_0fRo-3dQ';
 const AGS_TAB      = 'Agent Summary';
 
-let agsAllRows = [];
+let agsAllRows  = [];
 let agsFiltered = [];
-let agsLoaded  = false;
+let agsLoaded   = false;
 
-// Known company mapping by agent email domain / name patterns
-// Col indices (0-based) from the sheet screenshot:
-// 0=From, 1=To (date range end), 2=Team, 3=Agent Name,
-// 4=Total Messages, 5=Count Days Worked >4hrs, 6=Avg Responses/Day,
-// 7=Total Conversations Closed, 8=Handle Time/Cust(min), 9=Avg Cust/Day,
-// 10=Customer/Hr, 11=Active Hrs Logged, 12=Responses/Hr,
-// 13=Tasks Created, 14=Tasks Closed, 15=% Login Time Utilized,
-// 16=Hours Active/Day, 17=Away Hours Time,
-// 18=Email AHT(min), 19=Chat AHT(min), 20=Task Handle Time(min),
-// 21=Active Handle Time(hrs),
-// 22=Emails Sent, 23=Chats Sent, 24=Avg Messages Sent
+// Multi-select state: stores Set of selected values per dimension
+const agsSel = { agent: new Set(), role: new Set(), team: new Set() };
 
-function agsGetNum(row, i) {
-  const v = (row[i] || '').toString().replace(/[,%]/g,'').trim();
-  return v === '' ? null : parseFloat(v);
-}
+// ── Helpers ──────────────────────────────────────────
 function agsGetStr(row, i) { return (row[i] || '').toString().trim(); }
+function agsGetNum(row, i) {
+  const v = (row[i] || '').toString().replace(/[,%\s]/g,'').trim();
+  return v === '' || v === '--' ? null : parseFloat(v);
+}
 function agsFmt(n, dec=1) {
   if (n === null || n === undefined || isNaN(n)) return '--';
-  return Number.isInteger(n) ? n.toString() : parseFloat(n.toFixed(dec)).toString();
+  const r = parseFloat(n.toFixed(dec));
+  return r % 1 === 0 ? r.toFixed(0) : r.toString();
 }
 function agsFmtPct(n) {
   if (n === null || isNaN(n)) return '--';
-  // value may already be like 90.43 or 0.9043
   const v = n > 1 ? n : n * 100;
   return parseFloat(v.toFixed(2)) + '%';
 }
+function agsAvg(rows, field) {
+  const vals = rows.map(r => r[field]).filter(v => v !== null && !isNaN(v));
+  if (!vals.length) return null;
+  return vals.reduce((a,b) => a+b, 0) / vals.length;
+}
+function agsSum(rows, field) {
+  const vals = rows.map(r => r[field]).filter(v => v !== null && !isNaN(v));
+  if (!vals.length) return null;
+  return vals.reduce((a,b) => a+b, 0);
+}
 
+// ── Multi-select dropdown logic ───────────────────────
+function agsToggleDd(dim) {
+  ['agent','role','team'].forEach(d => {
+    const el = document.getElementById('ags-' + d + '-dd');
+    if (el) { if (d === dim) el.classList.toggle('open'); else el.classList.remove('open'); }
+  });
+}
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ags-multi-wrap')) {
+    document.querySelectorAll('.ags-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+function agsSelectAll(dim) {
+  const allChk = document.getElementById('ags-' + dim + '-all');
+  const items  = document.querySelectorAll('#ags-' + dim + '-list .ags-dd-item input[type=checkbox]');
+  const willCheck = allChk ? !allChk.checked : true;
+  if (allChk) allChk.checked = willCheck;
+  items.forEach(cb => { cb.checked = willCheck; });
+  agsSel[dim].clear();
+  agsUpdateBtn(dim);
+}
+
+function agsChkChange(dim) {
+  const items  = document.querySelectorAll('#ags-' + dim + '-list .ags-dd-item input[type=checkbox]');
+  const allChk = document.getElementById('ags-' + dim + '-all');
+  const total  = items.length;
+  const checked = [...items].filter(c => c.checked).length;
+  agsSel[dim].clear();
+  if (checked < total) {
+    if (allChk) allChk.checked = false;
+    items.forEach(cb => { if (cb.checked) agsSel[dim].add(cb.value); });
+  } else {
+    if (allChk) allChk.checked = true;
+  }
+  agsUpdateBtn(dim);
+}
+
+function agsUpdateBtn(dim) {
+  const btn   = document.getElementById('ags-' + dim + '-btn');
+  const label = { agent:'All Agents', role:'All Roles', team:'All Teams' };
+  if (agsSel[dim].size === 0) {
+    btn.textContent = label[dim];
+    btn.classList.remove('has-sel');
+  } else {
+    const names = [...agsSel[dim]];
+    btn.textContent = names.length === 1 ? names[0] : names.length + ' selected';
+    btn.classList.add('has-sel');
+  }
+}
+
+function agsSearchDd(dim, q) {
+  const items = document.querySelectorAll('#ags-' + dim + '-list .ags-dd-item');
+  items.forEach(item => {
+    const lbl = item.querySelector('label');
+    item.style.display = lbl && lbl.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function agsBuildDdList(dim, values) {
+  const list = document.getElementById('ags-' + dim + '-list');
+  if (!list) return;
+  list.innerHTML = values.map((v, i) => `
+    <div class="ags-dd-item">
+      <input type="checkbox" id="ags-${dim}-${i}" value="${v}" checked onchange="agsChkChange('${dim}')">
+      <label for="ags-${dim}-${i}">${v}</label>
+    </div>`).join('');
+}
+
+// ── Load data ────────────────────────────────────────
 async function agsLoad() {
   const loading = document.getElementById('ags-loading');
   const errEl   = document.getElementById('ags-err');
@@ -1375,17 +1510,14 @@ async function agsLoad() {
     if (data.error) throw new Error(data.error.message);
     const raw = data.values || [];
 
-    // Find the header row (contains "Full Name" or "Agent")
+    // Find header row
     let headerIdx = 0;
     for (let i = 0; i < Math.min(raw.length, 6); i++) {
-      const joined = raw[i].join('|').toLowerCase();
-      if (joined.includes('full name') || joined.includes('agent') || joined.includes('total messages')) {
-        headerIdx = i; break;
-      }
+      const j = raw[i].join('|').toLowerCase();
+      if (j.includes('full name') || j.includes('total messages') || j.includes('agent name')) { headerIdx = i; break; }
     }
     const headers = raw[headerIdx] || [];
 
-    // Build a flexible column map by matching header text
     function hIdx(...terms) {
       for (const t of terms) {
         const i = headers.findIndex(h => h.toLowerCase().includes(t.toLowerCase()));
@@ -1395,51 +1527,44 @@ async function agsLoad() {
     }
 
     const CI = {
-      fromDate:  hIdx('from','1/1'),
-      toDate:    hIdx('to','6/14'),
-      team:      hIdx('team'),
-      name:      hIdx('full name','agent name','name'),
-      msgs:      hIdx('total messages','messages +'),
-      days:      hIdx('count of days','days worked'),
-      rpd:       hIdx('avg responses per day','responses per day'),
-      conv:      hIdx('total conversations','conversations closed'),
-      htc:       hIdx('handle time','cust (min)','handle time / cust'),
-      cpd:       hIdx('avg customers per day','customers per day'),
-      cph:       hIdx('customer/hr','customer per hour','customer/h'),
-      hoursLog:  hIdx('active hours logged','hours logged'),
-      had:       hIdx('hours active per day','active per day'),
-      awt:       hIdx('away hours','away hour'),
-      ltu:       hIdx('% login','login time'),
-      ahtEmail:  hIdx('email (minutes','email aht','aht for email'),
-      ahtChat:   hIdx('chat (minutes','chat aht','aht for chat','chat (min'),
-      emailsSent:hIdx('emails sent','email sent'),
-      chatsSent: hIdx('chats sent','chat sent'),
+      fromDate:   hIdx('1/1','from','start date'),
+      toDate:     hIdx('6/14','to','end date'),
+      team:       hIdx('team(s)','team'),
+      role:       hIdx('role(s)','role'),
+      name:       hIdx('full name','agent name','name'),
+      msgs:       hIdx('total messages','messages +'),
+      days:       hIdx('count of days','days worked'),
+      rpd:        hIdx('avg responses per day','responses per day'),
+      conv:       hIdx('total conversations','conversations closed'),
+      htc:        hIdx('handle time / cust','handle time/cust','cust (min)'),
+      cpd:        hIdx('avg customers per day','customers per day'),
+      cph:        hIdx('customer/hr','customer per hour','customers/hr'),
+      rph:        hIdx('responses per hour','responses/hr','responses/hour'),
+      had:        hIdx('hours active per day','active per day'),
+      awt:        hIdx('away hours','away hour'),
+      ltu:        hIdx('% login','login time'),
+      ahtEmail:   hIdx('email (minutes','email aht','aht for email','aht email'),
+      ahtChat:    hIdx('chat (minutes','chat aht','aht for chat','aht chat'),
+      emailsSent: hIdx('emails sent','email sent'),
+      chatsSent:  hIdx('chats sent','chat sent'),
     };
 
     agsAllRows = raw.slice(headerIdx + 1).map(row => {
       if (!row || row.every(c => !c)) return null;
       const name = agsGetStr(row, CI.name);
-      if (!name) return null;
+      if (!name || name.toLowerCase() === 'averages' || name.toLowerCase() === 'average') return null;
 
-      // Determine company from team column or name
-      const team = agsGetStr(row, CI.team).toLowerCase();
-      let company = '';
-      if (team.includes('high social') || team.includes('hs')) company = 'High Social';
-      else if (team.includes('cloutify') || team.includes('cl')) company = 'Cloutify';
-
-      // Parse date range
-      const fromRaw = agsGetStr(row, CI.fromDate);
-      const toRaw   = agsGetStr(row, CI.toDate);
+      const fromRaw  = agsGetStr(row, CI.fromDate);
+      const toRaw    = agsGetStr(row, CI.toDate);
       const fromDate = parseDate(fromRaw);
       const toDate   = parseDate(toRaw);
-
-      // Raw % login — handle both 0.9043 and 90.43 formats
-      let ltuRaw = agsGetNum(row, CI.ltu);
+      let ltuRaw     = agsGetNum(row, CI.ltu);
 
       return {
-        name, company, team: agsGetStr(row, CI.team),
-        fromDate, toDate,
-        fromRaw, toRaw,
+        name,
+        team:       agsGetStr(row, CI.team),
+        role:       agsGetStr(row, CI.role),
+        fromDate, toDate, fromRaw, toRaw,
         msgs:       agsGetNum(row, CI.msgs),
         days:       agsGetNum(row, CI.days),
         rpd:        agsGetNum(row, CI.rpd),
@@ -1447,6 +1572,7 @@ async function agsLoad() {
         htc:        agsGetNum(row, CI.htc),
         cpd:        agsGetNum(row, CI.cpd),
         cph:        agsGetNum(row, CI.cph),
+        rph:        agsGetNum(row, CI.rph),
         had:        agsGetNum(row, CI.had),
         awt:        agsGetNum(row, CI.awt),
         ltu:        ltuRaw,
@@ -1457,13 +1583,16 @@ async function agsLoad() {
       };
     }).filter(Boolean);
 
-    // Populate agent dropdown
-    const names = [...new Set(agsAllRows.map(r => r.name))].sort();
-    const sel = document.getElementById('ags-agent');
-    sel.innerHTML = '<option value="">All Agents</option>';
-    names.forEach(n => sel.add(new Option(n, n)));
+    // Build dropdown lists
+    const names = [...new Set(agsAllRows.map(r => r.name).filter(Boolean))].sort();
+    const roles  = [...new Set(agsAllRows.map(r => r.role).filter(Boolean))].sort();
+    const teams  = [...new Set(agsAllRows.map(r => r.team).filter(Boolean))].sort();
 
-    // Default date range from data
+    agsBuildDdList('agent', names);
+    agsBuildDdList('role',  roles);
+    agsBuildDdList('team',  teams);
+
+    // Default date range
     const fromDates = agsAllRows.map(r => r.fromDate).filter(Boolean).sort((a,b) => a-b);
     const toDates   = agsAllRows.map(r => r.toDate).filter(Boolean).sort((a,b) => b-a);
     if (fromDates.length) document.getElementById('ags-start').value = fromDates[0].toISOString().split('T')[0];
@@ -1480,19 +1609,17 @@ async function agsLoad() {
   }
 }
 
+// ── Apply filters ─────────────────────────────────────
 function agsApply() {
-  const agentF   = document.getElementById('ags-agent').value;
-  const startF   = document.getElementById('ags-start').value;
-  const endF     = document.getElementById('ags-end').value;
-  const companyF = document.getElementById('ags-company').value;
-
-  const sDate = startF ? new Date(startF + 'T00:00:00') : null;
-  const eDate = endF   ? new Date(endF   + 'T23:59:59') : null;
+  const startF = document.getElementById('ags-start').value;
+  const endF   = document.getElementById('ags-end').value;
+  const sDate  = startF ? new Date(startF + 'T00:00:00') : null;
+  const eDate  = endF   ? new Date(endF   + 'T23:59:59') : null;
 
   agsFiltered = agsAllRows.filter(r => {
-    if (agentF   && r.name    !== agentF)   return false;
-    if (companyF && r.company !== companyF) return false;
-    // Date filter: row's date range must overlap with filter range
+    if (agsSel.agent.size > 0 && !agsSel.agent.has(r.name)) return false;
+    if (agsSel.role.size  > 0 && !agsSel.role.has(r.role))  return false;
+    if (agsSel.team.size  > 0 && !agsSel.team.has(r.team))  return false;
     if (sDate && r.toDate   && r.toDate   < sDate) return false;
     if (eDate && r.fromDate && r.fromDate > eDate) return false;
     return true;
@@ -1500,19 +1627,26 @@ function agsApply() {
 
   const s = sDate ? fmtDate(sDate) : '--';
   const e = eDate ? fmtDate(eDate) : '--';
+  const uniqueAgents = new Set(agsFiltered.map(r => r.name)).size;
   document.getElementById('ags-showing').textContent =
-    `Showing: ${s} to ${e} | ${agsFiltered.length} record${agsFiltered.length !== 1 ? 's' : ''} | ${new Set(agsFiltered.map(r=>r.name)).size} agent${new Set(agsFiltered.map(r=>r.name)).size !== 1 ? 's' : ''}`;
-
-  agsRenderKPIs();
-  agsRenderTable();
-  agsRenderBars();
+    `Showing: ${s} to ${e} | ${agsFiltered.length} record${agsFiltered.length !== 1 ? 's' : ''} | ${uniqueAgents} agent${uniqueAgents !== 1 ? 's' : ''}`;
   document.getElementById('ags-result-count').textContent =
     `Showing ${agsFiltered.length} of ${agsAllRows.length} records`;
+
+  agsRenderTeamSummary();
+  agsRenderTable();
+  agsRenderBars();
 }
 
 function agsReset() {
-  document.getElementById('ags-agent').value   = '';
-  document.getElementById('ags-company').value = '';
+  ['agent','role','team'].forEach(dim => {
+    agsSel[dim].clear();
+    const items = document.querySelectorAll('#ags-' + dim + '-list .ags-dd-item input[type=checkbox]');
+    items.forEach(cb => cb.checked = true);
+    const allChk = document.getElementById('ags-' + dim + '-all');
+    if (allChk) allChk.checked = true;
+    agsUpdateBtn(dim);
+  });
   const fromDates = agsAllRows.map(r => r.fromDate).filter(Boolean).sort((a,b) => a-b);
   const toDates   = agsAllRows.map(r => r.toDate).filter(Boolean).sort((a,b) => b-a);
   if (fromDates.length) document.getElementById('ags-start').value = fromDates[0].toISOString().split('T')[0];
@@ -1520,36 +1654,23 @@ function agsReset() {
   agsApply();
 }
 
-function agsAvg(field) {
-  const vals = agsFiltered.map(r => r[field]).filter(v => v !== null && !isNaN(v));
-  if (!vals.length) return null;
-  return vals.reduce((a,b) => a+b, 0) / vals.length;
-}
-function agsSum(field) {
-  const vals = agsFiltered.map(r => r[field]).filter(v => v !== null && !isNaN(v));
-  if (!vals.length) return null;
-  return vals.reduce((a,b) => a+b, 0);
-}
-
-function agsRenderKPIs() {
-  const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-  set('ags-k-msgs', agsFmt(agsSum('msgs'), 0));
-  set('ags-k-days', agsFmt(agsSum('days'), 0));
-  set('ags-k-conv', agsFmt(agsSum('conv'), 0));
-  set('ags-k-rpd',  agsFmt(agsAvg('rpd'), 1));
-  set('ags-k-cpd',  agsFmt(agsAvg('cpd'), 1));
-  set('ags-k-cph',  agsFmt(agsAvg('cph'), 2));
-  set('ags-k-htc',  agsFmt(agsAvg('htc'), 1));
-  set('ags-k-had',  agsFmt(agsAvg('had'), 2));
-  set('ags-k-awt',  agsFmt(agsAvg('awt'), 2));
-  const ltuAvg = agsAvg('ltu');
-  set('ags-k-ltu',  ltuAvg !== null ? agsFmtPct(ltuAvg) : '--');
-  set('ags-k-ahe',  agsFmt(agsAvg('ahtEmail'), 1));
-  set('ags-k-ahc',  agsFmt(agsAvg('ahtChat'), 1));
-  set('ags-k-ems',  agsFmt(agsSum('emailsSent'), 0));
-  set('ags-k-chs',  agsFmt(agsSum('chatsSent'), 0));
+// ── Team Summary tiles ────────────────────────────────
+function agsRenderTeamSummary() {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('ags-ts-msgs', agsFmt(agsAvg(agsFiltered, 'msgs'), 0));
+  set('ags-ts-days', agsFmt(agsAvg(agsFiltered, 'days'), 1));
+  set('ags-ts-rpd',  agsFmt(agsAvg(agsFiltered, 'rpd'), 1));
+  set('ags-ts-cpd',  agsFmt(agsAvg(agsFiltered, 'cpd'), 1));
+  set('ags-ts-htc',  agsFmt(agsAvg(agsFiltered, 'htc'), 1));
+  set('ags-ts-cph',  agsFmt(agsAvg(agsFiltered, 'cph'), 2));
+  set('ags-ts-rph',  agsFmt(agsAvg(agsFiltered, 'rph'), 2));
+  const ltuAvg = agsAvg(agsFiltered, 'ltu');
+  set('ags-ts-ltu',  ltuAvg !== null ? agsFmtPct(ltuAvg) : '--');
+  set('ags-ts-had',  agsFmt(agsAvg(agsFiltered, 'had'), 2));
+  set('ags-ts-awt',  agsFmt(agsAvg(agsFiltered, 'awt'), 2));
 }
 
+// ── Agent table ───────────────────────────────────────
 function agsLtuCell(v) {
   if (v === null || isNaN(v)) return '--';
   const pctVal = v > 1 ? v : v * 100;
@@ -1559,22 +1680,16 @@ function agsLtuCell(v) {
   return `<span class="ags-hl-red">${fmt}</span>`;
 }
 
-function agsCmpBadge(company) {
-  if (!company) return '';
-  const cls = company === 'High Social' ? 'ags-cmp-hs' : 'ags-cmp-cl';
-  const lbl = company === 'High Social' ? 'HS' : 'CL';
-  return `<span class="ags-cmp-badge ${cls}">${lbl}</span>`;
-}
-
 function agsRenderTable() {
   const tbody = document.getElementById('ags-tbody');
   if (!agsFiltered.length) {
-    tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;color:var(--mut);padding:20px">No records match the current filters.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="19" style="text-align:center;color:var(--mut);padding:20px">No records match the current filters.</td></tr>';
     return;
   }
   tbody.innerHTML = agsFiltered.map(r => `<tr>
-    <td style="text-align:left;font-weight:700;white-space:nowrap;position:sticky;left:0;background:inherit">${r.name}</td>
-    <td style="text-align:left">${agsCmpBadge(r.company)}</td>
+    <td style="text-align:left;font-weight:700;white-space:nowrap">${r.name}</td>
+    <td style="text-align:left;white-space:nowrap">${r.team || '--'}</td>
+    <td style="text-align:left;white-space:nowrap">${r.role || '--'}</td>
     <td style="white-space:nowrap">${r.fromRaw || ''} - ${r.toRaw || ''}</td>
     <td>${r.msgs !== null ? r.msgs.toLocaleString() : '--'}</td>
     <td>${agsFmt(r.days,0)}</td>
@@ -1582,6 +1697,7 @@ function agsRenderTable() {
     <td>${agsFmt(r.rpd,1)}</td>
     <td>${agsFmt(r.cpd,1)}</td>
     <td>${agsFmt(r.cph,2)}</td>
+    <td>${agsFmt(r.rph,2)}</td>
     <td>${agsFmt(r.htc,1)}</td>
     <td>${agsFmt(r.had,2)}</td>
     <td>${agsFmt(r.awt,2)}</td>
@@ -1593,38 +1709,39 @@ function agsRenderTable() {
   </tr>`).join('');
 }
 
-function agsBarBlock(entries, unit, colorClass) {
+// ── Bar charts ────────────────────────────────────────
+function agsBarBlock(entries, unit, fillClass) {
   if (!entries.length) return '<div class="p" style="font-size:11px;padding:4px 0">No data for current filters.</div>';
   const max = Math.max(...entries.map(e => e[1]));
   return entries.map(([lbl, val]) => `
     <div class="brow">
-      <div class="blbl" title="${lbl}" style="width:130px;font-size:11px;font-weight:600">${lbl}</div>
-      <div class="btrk"><div class="bfil ${colorClass}" style="width:${max ? (val/max*100) : 0}%;height:100%"></div></div>
-      <div style="width:72px;text-align:right;font-size:11px;font-weight:700;color:var(--txt)">${typeof val === 'number' ? agsFmt(val,1) : val}${unit}</div>
+      <div class="blbl" title="${lbl}" style="width:130px;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${lbl}</div>
+      <div class="btrk"><div class="bfil ${fillClass}" style="width:${max ? (val/max*100) : 0}%;height:100%"></div></div>
+      <div class="bnum">${agsFmt(val,1)}${unit}</div>
     </div>`).join('');
 }
 
 function agsRenderBars() {
-  // Group by agent name, sum/avg across multiple rows per agent
   const agentMap = {};
   agsFiltered.forEach(r => {
-    if (!agentMap[r.name]) agentMap[r.name] = {conv:0, msgs:0, ltuSum:0, ltuCount:0, htcSum:0, htcCount:0};
+    if (!agentMap[r.name]) agentMap[r.name] = {conv:0,msgs:0,ltuS:0,ltuC:0,htcS:0,htcC:0};
     const a = agentMap[r.name];
     if (r.conv !== null) a.conv += r.conv;
     if (r.msgs !== null) a.msgs += r.msgs;
-    if (r.ltu  !== null) { a.ltuSum += (r.ltu > 1 ? r.ltu : r.ltu * 100); a.ltuCount++; }
-    if (r.htc  !== null) { a.htcSum += r.htc; a.htcCount++; }
+    if (r.ltu  !== null) { a.ltuS += (r.ltu > 1 ? r.ltu : r.ltu * 100); a.ltuC++; }
+    if (r.htc  !== null) { a.htcS += r.htc; a.htcC++; }
   });
 
-  const conv = Object.entries(agentMap).map(([n,a]) => [n, a.conv]).sort((a,b) => b[1]-a[1]);
-  const msgs = Object.entries(agentMap).map(([n,a]) => [n, a.msgs]).sort((a,b) => b[1]-a[1]);
-  const ltu  = Object.entries(agentMap).map(([n,a]) => [n, a.ltuCount ? a.ltuSum/a.ltuCount : 0]).sort((a,b) => b[1]-a[1]);
-  const htc  = Object.entries(agentMap).map(([n,a]) => [n, a.htcCount ? a.htcSum/a.htcCount : 0]).sort((a,b) => b[1]-a[1]);
+  const srt = (arr) => arr.sort((a,b) => b[1]-a[1]);
+  const conv = srt(Object.entries(agentMap).map(([n,a]) => [n, a.conv]));
+  const msgs = srt(Object.entries(agentMap).map(([n,a]) => [n, a.msgs]));
+  const ltu  = srt(Object.entries(agentMap).map(([n,a]) => [n, a.ltuC ? a.ltuS/a.ltuC : 0]));
+  const htc  = srt(Object.entries(agentMap).map(([n,a]) => [n, a.htcC ? a.htcS/a.htcC : 0]));
 
   document.getElementById('ags-bar-conv').innerHTML = agsBarBlock(conv, '', 'bg-blue');
   document.getElementById('ags-bar-msgs').innerHTML = agsBarBlock(msgs, '', 'bg-blue');
-  document.getElementById('ags-bar-ltu').innerHTML  = agsBarBlock(ltu, '%', 'bg-grn');
-  document.getElementById('ags-bar-htc').innerHTML  = agsBarBlock(htc, ' min', 'bg-ylw');
+  document.getElementById('ags-bar-ltu').innerHTML  = agsBarBlock(ltu,  '%', 'bg-grn');
+  document.getElementById('ags-bar-htc').innerHTML  = agsBarBlock(htc,  ' min', 'bg-ylw');
 }
 
 // ═══════════════════════════════════════════════════
@@ -1909,17 +2026,13 @@ function ottRenderTable() {
   }).join('');
 }
 
-// Load OT-TimeOff data when that tab is first clicked
+// Load OT-TimeOff / Agent Summary data on first click
 (function() {
   const origGo = window.go;
   window.go = function(id, btn) {
     origGo(id, btn);
-    if (id === 'ott' && !ottLoaded) {
-      ottLoad();
-    }
-    if (id === 'ags' && !agsLoaded) {
-      agsLoad();
-    }
+    if (id === 'ott' && !ottLoaded) ottLoad();
+    if (id === 'ags' && !agsLoaded) agsLoad();
   };
 })();
 
