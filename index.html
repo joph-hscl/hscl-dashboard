@@ -287,8 +287,8 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
   <!-- TEAM SUMMARY -->
   <div class="sh">Team Summary</div>
   <div class="ags-team-grid" id="ags-team-grid">
-    <div class="ags-team-cell"><div class="ags-team-label">Total Messages</div><div class="ags-team-val" id="ags-ts-msgs">--</div><div class="ags-team-sub">team avg</div></div>
-    <div class="ags-team-cell tb"><div class="ags-team-label">Days Worked</div><div class="ags-team-val" id="ags-ts-days">--</div><div class="ags-team-sub">team avg</div></div>
+    <div class="ags-team-cell"><div class="ags-team-label">Total Messages</div><div class="ags-team-val" id="ags-ts-msgs">--</div><div class="ags-team-sub">avg (Messages Sent, col BL)</div></div>
+    <div class="ags-team-cell tb"><div class="ags-team-label">Days Worked</div><div class="ags-team-val" id="ags-ts-days">--</div><div class="ags-team-sub">avg (login sec / 28800)</div></div>
     <div class="ags-team-cell"><div class="ags-team-label">Avg Responses / Day</div><div class="ags-team-val" id="ags-ts-rpd">--</div><div class="ags-team-sub">team avg</div></div>
     <div class="ags-team-cell"><div class="ags-team-label">Avg Customers / Day</div><div class="ags-team-val" id="ags-ts-cpd">--</div><div class="ags-team-sub">team avg</div></div>
     <div class="ags-team-cell ta"><div class="ags-team-label">Handle Time / Cust (min)</div><div class="ags-team-val" id="ags-ts-htc">--</div><div class="ags-team-sub">team avg</div></div>
@@ -1533,6 +1533,10 @@ async function agsLoad() {
       role:       hIdx('role(s)','role'),
       name:       hIdx('full name','agent name','name'),
       msgs:       hIdx('total messages','messages +'),
+      // col BL (0-based 63) = Messages Sent — match by header first, then fixed index
+      msgsSent:   (()=>{ const i=hIdx('messages sent','msgs sent'); return i>=0?i:63; })(),
+      // col N (0-based 13) = Login Time in seconds
+      loginSec:   (()=>{ const i=hIdx('login time','login duration','login time (seconds'); return i>=0?i:13; })(),
       days:       hIdx('count of days','days worked'),
       rpd:        hIdx('avg responses per day','responses per day'),
       conv:       hIdx('total conversations','conversations closed'),
@@ -1540,6 +1544,7 @@ async function agsLoad() {
       cpd:        hIdx('avg customers per day','customers per day'),
       cph:        hIdx('customer/hr','customer per hour','customers/hr'),
       rph:        hIdx('responses per hour','responses/hr','responses/hour'),
+      hoursLog:   hIdx('active hours logged','hours logged'),
       had:        hIdx('hours active per day','active per day'),
       awt:        hIdx('away hours','away hour'),
       ltu:        hIdx('% login','login time'),
@@ -1547,6 +1552,9 @@ async function agsLoad() {
       ahtChat:    hIdx('chat (minutes','chat aht','aht for chat','aht chat'),
       emailsSent: hIdx('emails sent','email sent'),
       chatsSent:  hIdx('chats sent','chat sent'),
+      ahtTask:    hIdx('task handle time','task handle','task (min'),
+      ahtActive:  hIdx('active handle time','active handle','active handle time (hours','active (hours'),
+      avgMsgsSent:hIdx('avg messages sent','average messages sent'),
     };
 
     agsAllRows = raw.slice(headerIdx + 1).map(row => {
@@ -1560,12 +1568,22 @@ async function agsLoad() {
       const toDate   = parseDate(toRaw);
       let ltuRaw     = agsGetNum(row, CI.ltu);
 
+      // Messages Sent — col BL (index 63)
+      const msgsSentRaw = agsGetNum(row, CI.msgsSent);
+
+      // Days Worked — col N is Login Time in seconds; 1 day = 8hr shift = 28800 seconds
+      const loginSecRaw = agsGetNum(row, CI.loginSec);
+      const daysWorked  = loginSecRaw !== null ? loginSecRaw / 28800 : null;
+
       return {
         name,
         team:       agsGetStr(row, CI.team),
         role:       agsGetStr(row, CI.role),
         fromDate, toDate, fromRaw, toRaw,
         msgs:       agsGetNum(row, CI.msgs),
+        msgsSent:   msgsSentRaw,
+        loginSec:   loginSecRaw,
+        daysWorked,
         days:       agsGetNum(row, CI.days),
         rpd:        agsGetNum(row, CI.rpd),
         conv:       agsGetNum(row, CI.conv),
@@ -1573,6 +1591,7 @@ async function agsLoad() {
         cpd:        agsGetNum(row, CI.cpd),
         cph:        agsGetNum(row, CI.cph),
         rph:        agsGetNum(row, CI.rph),
+        hoursLog:   agsGetNum(row, CI.hoursLog),
         had:        agsGetNum(row, CI.had),
         awt:        agsGetNum(row, CI.awt),
         ltu:        ltuRaw,
@@ -1580,6 +1599,9 @@ async function agsLoad() {
         ahtChat:    agsGetNum(row, CI.ahtChat),
         emailsSent: agsGetNum(row, CI.emailsSent),
         chatsSent:  agsGetNum(row, CI.chatsSent),
+        ahtTask:    agsGetNum(row, CI.ahtTask),
+        ahtActive:  agsGetNum(row, CI.ahtActive),
+        avgMsgsSent:agsGetNum(row, CI.avgMsgsSent),
       };
     }).filter(Boolean);
 
@@ -1657,8 +1679,10 @@ function agsReset() {
 // ── Team Summary tiles ────────────────────────────────
 function agsRenderTeamSummary() {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set('ags-ts-msgs', agsFmt(agsAvg(agsFiltered, 'msgs'), 0));
-  set('ags-ts-days', agsFmt(agsAvg(agsFiltered, 'days'), 1));
+  // Total Messages — avg of Messages Sent (col BL)
+  set('ags-ts-msgs', agsFmt(agsAvg(agsFiltered, 'msgsSent'), 0));
+  // Days Worked — avg of (Login Seconds / 28800); show 1 decimal
+  set('ags-ts-days', agsFmt(agsAvg(agsFiltered, 'daysWorked'), 1));
   set('ags-ts-rpd',  agsFmt(agsAvg(agsFiltered, 'rpd'), 1));
   set('ags-ts-cpd',  agsFmt(agsAvg(agsFiltered, 'cpd'), 1));
   set('ags-ts-htc',  agsFmt(agsAvg(agsFiltered, 'htc'), 1));
