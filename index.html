@@ -79,6 +79,9 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .blbl{width:110px;font-size:11px;font-weight:600;flex-shrink:0}
 .btrk{flex:1;height:15px;background:#e8e8e8;border-radius:3px;overflow:hidden}
 .bfil{height:100%;border-radius:3px}
+.bg-blue{background:var(--blue)}
+.bg-grn{background:#27ae7a}
+.bg-ylw{background:#e8960a}
 .bfg{background:#27ae60}.bfr{background:#e74c3c}.bfa{background:#f39c12}
 .bnum{width:70px;text-align:right;font-size:11px;font-weight:700}
 
@@ -141,6 +144,29 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .ott-td-ot{color:#b7670a;font-weight:700}
 .ott-td-to{color:#1a6644;font-weight:700}
 .ott-result{font-size:10.5px;color:var(--mut);font-weight:600}
+
+/* ── AGENT SUMMARY TAB ── */
+.ags-frow{background:#fff;border:1px solid var(--bdr);border-top:none;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ags-fg{display:flex;flex-direction:column;gap:3px}
+.ags-fg label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--navy)}
+.ags-fg select,.ags-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);min-width:130px;color:var(--txt)}
+.ags-fg select:focus,.ags-fg input:focus{outline:2px solid var(--blue)}
+.ags-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;background:#fff;border:1px solid var(--bdr);border-top:none;padding:12px}
+.ags-kpi{border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;background:var(--grey);text-align:center}
+.ags-kpi .kl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:5px;line-height:1.3}
+.ags-kpi .kv{font-size:20px;font-weight:800;line-height:1;color:var(--navy)}
+.ags-kpi.kb{background:#e8f4fb;border-color:#aed6f1}.ags-kpi.kb .kv{color:var(--teal)}
+.ags-kpi.kg{background:var(--gbg);border-color:var(--gbr)}.ags-kpi.kg .kv{color:var(--gfg)}
+.ags-kpi.ka{background:var(--amb);border-color:var(--abr)}.ags-kpi.ka .kv{color:var(--afg)}
+.ags-agent-sel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;background:#fff;border:1px solid var(--bdr);border-top:none}
+.ags-agent-btn{background:var(--grey);border:1.5px solid var(--bdr);border-radius:3px;padding:5px 12px;font:600 11px/1 var(--font);cursor:pointer;color:var(--navy);transition:all .15s;white-space:nowrap}
+.ags-agent-btn:hover,.ags-agent-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.ags-cmp-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.ags-cmp-hs{background:#e8f4fb;color:var(--teal)}
+.ags-cmp-cl{background:var(--gbg);color:var(--gfg)}
+.ags-hl-grn{background:#c6efce;color:#276221;font-weight:700}
+.ags-hl-red{background:#ffc7ce;color:#9c0006;font-weight:700}
+.ags-hl-ylw{background:#ffeb9c;color:#9c6500;font-weight:700}
 </style>
 </head>
 <body>
@@ -148,6 +174,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 <nav class="topbar">
   <div class="logo">HS/CL Dashboard (V1)</div>
   <div class="tabs">
+    <button class="tab"     onclick="go('ags',this)">Agent Summary</button>
     <button class="tab on"  onclick="go('ful',this)">Dashboard - Fulfillment</button>
     <button class="tab"     onclick="go('ref',this)">Dashboard - Refund</button>
     <button class="tab"     onclick="go('sav',this)">Dashboard - Save Offers</button>
@@ -157,6 +184,120 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <button class="tab"     onclick="go('rpt',this)">BiWeekly Report</button>
   </div>
 </nav>
+
+<!-- AGENT SUMMARY -->
+<div id="pg-ags" class="page"><div class="wrap">
+  <div class="ph">
+    <h1>Agent Summary Dashboard</h1>
+    <div class="sub" id="ags-sub">Source: Agent/Team KPI — Agent Summary Sheet</div>
+  </div>
+  <div class="fbar">FILTERS — Select options then click Refresh.</div>
+  <div class="ags-frow">
+    <div class="ags-fg">
+      <label>Agent Name</label>
+      <select id="ags-agent"><option value="">All Agents</option></select>
+    </div>
+    <div class="ags-fg">
+      <label>Start Date</label>
+      <input type="date" id="ags-start" />
+    </div>
+    <div class="ags-fg">
+      <label>End Date</label>
+      <input type="date" id="ags-end" />
+    </div>
+    <div class="ags-fg">
+      <label>Company</label>
+      <select id="ags-company">
+        <option value="">All</option>
+        <option value="High Social">High Social</option>
+        <option value="Cloutify">Cloutify</option>
+      </select>
+    </div>
+    <button class="rbtn" onclick="agsApply()">Refresh</button>
+    <button class="rbtn" style="background:var(--mut)" onclick="agsReset()">Reset</button>
+  </div>
+  <div class="loading" id="ags-loading">Loading data from tracker...</div>
+  <div class="err" id="ags-err"></div>
+  <div class="sbar" id="ags-showing">Loading...</div>
+
+  <!-- KPI TILES -->
+  <div class="sh">Key Performance Indicators</div>
+  <div class="ags-kpi-grid" id="ags-kpi-grid">
+    <div class="ags-kpi"><div class="kl">Total Messages</div><div class="kv" id="ags-k-msgs">--</div></div>
+    <div class="ags-kpi kb"><div class="kl">Days Worked</div><div class="kv" id="ags-k-days">--</div></div>
+    <div class="ags-kpi"><div class="kl">Conversations Closed</div><div class="kv" id="ags-k-conv">--</div></div>
+    <div class="ags-kpi kb"><div class="kl">Avg Responses / Day</div><div class="kv" id="ags-k-rpd">--</div></div>
+    <div class="ags-kpi"><div class="kl">Avg Customers / Day</div><div class="kv" id="ags-k-cpd">--</div></div>
+    <div class="ags-kpi kb"><div class="kl">Customer / Hour</div><div class="kv" id="ags-k-cph">--</div></div>
+    <div class="ags-kpi ka"><div class="kl">Handle Time / Customer (min)</div><div class="kv" id="ags-k-htc">--</div></div>
+    <div class="ags-kpi kb"><div class="kl">Hours Active / Day</div><div class="kv" id="ags-k-had">--</div></div>
+    <div class="ags-kpi ka"><div class="kl">Away Hours Time</div><div class="kv" id="ags-k-awt">--</div></div>
+    <div class="ags-kpi kg"><div class="kl">% Login Time Utilized</div><div class="kv" id="ags-k-ltu">--</div></div>
+    <div class="ags-kpi"><div class="kl">AHT Email (min)</div><div class="kv" id="ags-k-ahe">--</div></div>
+    <div class="ags-kpi"><div class="kl">AHT Chat (min)</div><div class="kv" id="ags-k-ahc">--</div></div>
+    <div class="ags-kpi kb"><div class="kl">Emails Sent</div><div class="kv" id="ags-k-ems">--</div></div>
+    <div class="ags-kpi kb"><div class="kl">Chats Sent</div><div class="kv" id="ags-k-chs">--</div></div>
+  </div>
+
+  <!-- AGENT COMPARISON TABLE -->
+  <div class="sp"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+    <div class="sh" style="margin-top:0;flex:1">Agent Breakdown</div>
+    <div class="ott-result" id="ags-result-count" style="margin-right:4px"></div>
+  </div>
+  <div class="tw ox">
+    <table id="ags-table">
+      <thead>
+        <tr>
+          <th style="text-align:left;position:sticky;left:0;background:var(--navy)">Agent</th>
+          <th style="text-align:left">Company</th>
+          <th>Date Range</th>
+          <th>Total Messages</th>
+          <th>Days Worked</th>
+          <th>Conv. Closed</th>
+          <th>Resp / Day</th>
+          <th>Cust / Day</th>
+          <th>Cust / Hr</th>
+          <th>Handle Time (min)</th>
+          <th>Hrs Active / Day</th>
+          <th>Away Hrs</th>
+          <th>% Login</th>
+          <th>AHT Email</th>
+          <th>AHT Chat</th>
+          <th>Emails Sent</th>
+          <th>Chats Sent</th>
+        </tr>
+      </thead>
+      <tbody id="ags-tbody">
+        <tr><td colspan="17" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PER-AGENT BAR CHARTS -->
+  <div class="sp"></div>
+  <div class="g2">
+    <div>
+      <div class="sh">Conversations Closed by Agent</div>
+      <div class="tw" style="padding:12px 14px" id="ags-bar-conv"></div>
+    </div>
+    <div>
+      <div class="sh">Total Messages by Agent</div>
+      <div class="tw" style="padding:12px 14px" id="ags-bar-msgs"></div>
+    </div>
+  </div>
+  <div class="sp"></div>
+  <div class="g2">
+    <div>
+      <div class="sh">% Login Time Utilized by Agent</div>
+      <div class="tw" style="padding:12px 14px" id="ags-bar-ltu"></div>
+    </div>
+    <div>
+      <div class="sh">Avg Handle Time / Customer (min)</div>
+      <div class="tw" style="padding:12px 14px" id="ags-bar-htc"></div>
+    </div>
+  </div>
+</div></div>
 
 <!-- FULFILLMENT -->
 <div id="pg-ful" class="page on"><div class="wrap">
@@ -1184,6 +1325,309 @@ function cp() {
 }
 
 // ═══════════════════════════════════════════════════
+// AGENT SUMMARY
+// ═══════════════════════════════════════════════════
+const AGS_SHEET_ID = '1Yw2KZgzyKvFuTLrLtO5sNoWpKbfgH5HfH3_0fRo-3dQ';
+const AGS_TAB      = 'Agent Summary';
+
+let agsAllRows = [];
+let agsFiltered = [];
+let agsLoaded  = false;
+
+// Known company mapping by agent email domain / name patterns
+// Col indices (0-based) from the sheet screenshot:
+// 0=From, 1=To (date range end), 2=Team, 3=Agent Name,
+// 4=Total Messages, 5=Count Days Worked >4hrs, 6=Avg Responses/Day,
+// 7=Total Conversations Closed, 8=Handle Time/Cust(min), 9=Avg Cust/Day,
+// 10=Customer/Hr, 11=Active Hrs Logged, 12=Responses/Hr,
+// 13=Tasks Created, 14=Tasks Closed, 15=% Login Time Utilized,
+// 16=Hours Active/Day, 17=Away Hours Time,
+// 18=Email AHT(min), 19=Chat AHT(min), 20=Task Handle Time(min),
+// 21=Active Handle Time(hrs),
+// 22=Emails Sent, 23=Chats Sent, 24=Avg Messages Sent
+
+function agsGetNum(row, i) {
+  const v = (row[i] || '').toString().replace(/[,%]/g,'').trim();
+  return v === '' ? null : parseFloat(v);
+}
+function agsGetStr(row, i) { return (row[i] || '').toString().trim(); }
+function agsFmt(n, dec=1) {
+  if (n === null || n === undefined || isNaN(n)) return '--';
+  return Number.isInteger(n) ? n.toString() : parseFloat(n.toFixed(dec)).toString();
+}
+function agsFmtPct(n) {
+  if (n === null || isNaN(n)) return '--';
+  // value may already be like 90.43 or 0.9043
+  const v = n > 1 ? n : n * 100;
+  return parseFloat(v.toFixed(2)) + '%';
+}
+
+async function agsLoad() {
+  const loading = document.getElementById('ags-loading');
+  const errEl   = document.getElementById('ags-err');
+  loading.style.display = 'block';
+  errEl.style.display   = 'none';
+  try {
+    const url  = `https://sheets.googleapis.com/v4/spreadsheets/${AGS_SHEET_ID}/values/${encodeURIComponent(AGS_TAB)}?key=${API_KEY}`;
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = data.values || [];
+
+    // Find the header row (contains "Full Name" or "Agent")
+    let headerIdx = 0;
+    for (let i = 0; i < Math.min(raw.length, 6); i++) {
+      const joined = raw[i].join('|').toLowerCase();
+      if (joined.includes('full name') || joined.includes('agent') || joined.includes('total messages')) {
+        headerIdx = i; break;
+      }
+    }
+    const headers = raw[headerIdx] || [];
+
+    // Build a flexible column map by matching header text
+    function hIdx(...terms) {
+      for (const t of terms) {
+        const i = headers.findIndex(h => h.toLowerCase().includes(t.toLowerCase()));
+        if (i >= 0) return i;
+      }
+      return -1;
+    }
+
+    const CI = {
+      fromDate:  hIdx('from','1/1'),
+      toDate:    hIdx('to','6/14'),
+      team:      hIdx('team'),
+      name:      hIdx('full name','agent name','name'),
+      msgs:      hIdx('total messages','messages +'),
+      days:      hIdx('count of days','days worked'),
+      rpd:       hIdx('avg responses per day','responses per day'),
+      conv:      hIdx('total conversations','conversations closed'),
+      htc:       hIdx('handle time','cust (min)','handle time / cust'),
+      cpd:       hIdx('avg customers per day','customers per day'),
+      cph:       hIdx('customer/hr','customer per hour','customer/h'),
+      hoursLog:  hIdx('active hours logged','hours logged'),
+      had:       hIdx('hours active per day','active per day'),
+      awt:       hIdx('away hours','away hour'),
+      ltu:       hIdx('% login','login time'),
+      ahtEmail:  hIdx('email (minutes','email aht','aht for email'),
+      ahtChat:   hIdx('chat (minutes','chat aht','aht for chat','chat (min'),
+      emailsSent:hIdx('emails sent','email sent'),
+      chatsSent: hIdx('chats sent','chat sent'),
+    };
+
+    agsAllRows = raw.slice(headerIdx + 1).map(row => {
+      if (!row || row.every(c => !c)) return null;
+      const name = agsGetStr(row, CI.name);
+      if (!name) return null;
+
+      // Determine company from team column or name
+      const team = agsGetStr(row, CI.team).toLowerCase();
+      let company = '';
+      if (team.includes('high social') || team.includes('hs')) company = 'High Social';
+      else if (team.includes('cloutify') || team.includes('cl')) company = 'Cloutify';
+
+      // Parse date range
+      const fromRaw = agsGetStr(row, CI.fromDate);
+      const toRaw   = agsGetStr(row, CI.toDate);
+      const fromDate = parseDate(fromRaw);
+      const toDate   = parseDate(toRaw);
+
+      // Raw % login — handle both 0.9043 and 90.43 formats
+      let ltuRaw = agsGetNum(row, CI.ltu);
+
+      return {
+        name, company, team: agsGetStr(row, CI.team),
+        fromDate, toDate,
+        fromRaw, toRaw,
+        msgs:       agsGetNum(row, CI.msgs),
+        days:       agsGetNum(row, CI.days),
+        rpd:        agsGetNum(row, CI.rpd),
+        conv:       agsGetNum(row, CI.conv),
+        htc:        agsGetNum(row, CI.htc),
+        cpd:        agsGetNum(row, CI.cpd),
+        cph:        agsGetNum(row, CI.cph),
+        had:        agsGetNum(row, CI.had),
+        awt:        agsGetNum(row, CI.awt),
+        ltu:        ltuRaw,
+        ahtEmail:   agsGetNum(row, CI.ahtEmail),
+        ahtChat:    agsGetNum(row, CI.ahtChat),
+        emailsSent: agsGetNum(row, CI.emailsSent),
+        chatsSent:  agsGetNum(row, CI.chatsSent),
+      };
+    }).filter(Boolean);
+
+    // Populate agent dropdown
+    const names = [...new Set(agsAllRows.map(r => r.name))].sort();
+    const sel = document.getElementById('ags-agent');
+    sel.innerHTML = '<option value="">All Agents</option>';
+    names.forEach(n => sel.add(new Option(n, n)));
+
+    // Default date range from data
+    const fromDates = agsAllRows.map(r => r.fromDate).filter(Boolean).sort((a,b) => a-b);
+    const toDates   = agsAllRows.map(r => r.toDate).filter(Boolean).sort((a,b) => b-a);
+    if (fromDates.length) document.getElementById('ags-start').value = fromDates[0].toISOString().split('T')[0];
+    if (toDates.length)   document.getElementById('ags-end').value   = toDates[0].toISOString().split('T')[0];
+
+    agsLoaded = true;
+    loading.style.display = 'none';
+    agsApply();
+
+  } catch(e) {
+    loading.style.display = 'none';
+    errEl.textContent = 'Could not load Agent Summary data. Error: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function agsApply() {
+  const agentF   = document.getElementById('ags-agent').value;
+  const startF   = document.getElementById('ags-start').value;
+  const endF     = document.getElementById('ags-end').value;
+  const companyF = document.getElementById('ags-company').value;
+
+  const sDate = startF ? new Date(startF + 'T00:00:00') : null;
+  const eDate = endF   ? new Date(endF   + 'T23:59:59') : null;
+
+  agsFiltered = agsAllRows.filter(r => {
+    if (agentF   && r.name    !== agentF)   return false;
+    if (companyF && r.company !== companyF) return false;
+    // Date filter: row's date range must overlap with filter range
+    if (sDate && r.toDate   && r.toDate   < sDate) return false;
+    if (eDate && r.fromDate && r.fromDate > eDate) return false;
+    return true;
+  });
+
+  const s = sDate ? fmtDate(sDate) : '--';
+  const e = eDate ? fmtDate(eDate) : '--';
+  document.getElementById('ags-showing').textContent =
+    `Showing: ${s} to ${e} | ${agsFiltered.length} record${agsFiltered.length !== 1 ? 's' : ''} | ${new Set(agsFiltered.map(r=>r.name)).size} agent${new Set(agsFiltered.map(r=>r.name)).size !== 1 ? 's' : ''}`;
+
+  agsRenderKPIs();
+  agsRenderTable();
+  agsRenderBars();
+  document.getElementById('ags-result-count').textContent =
+    `Showing ${agsFiltered.length} of ${agsAllRows.length} records`;
+}
+
+function agsReset() {
+  document.getElementById('ags-agent').value   = '';
+  document.getElementById('ags-company').value = '';
+  const fromDates = agsAllRows.map(r => r.fromDate).filter(Boolean).sort((a,b) => a-b);
+  const toDates   = agsAllRows.map(r => r.toDate).filter(Boolean).sort((a,b) => b-a);
+  if (fromDates.length) document.getElementById('ags-start').value = fromDates[0].toISOString().split('T')[0];
+  if (toDates.length)   document.getElementById('ags-end').value   = toDates[0].toISOString().split('T')[0];
+  agsApply();
+}
+
+function agsAvg(field) {
+  const vals = agsFiltered.map(r => r[field]).filter(v => v !== null && !isNaN(v));
+  if (!vals.length) return null;
+  return vals.reduce((a,b) => a+b, 0) / vals.length;
+}
+function agsSum(field) {
+  const vals = agsFiltered.map(r => r[field]).filter(v => v !== null && !isNaN(v));
+  if (!vals.length) return null;
+  return vals.reduce((a,b) => a+b, 0);
+}
+
+function agsRenderKPIs() {
+  const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  set('ags-k-msgs', agsFmt(agsSum('msgs'), 0));
+  set('ags-k-days', agsFmt(agsSum('days'), 0));
+  set('ags-k-conv', agsFmt(agsSum('conv'), 0));
+  set('ags-k-rpd',  agsFmt(agsAvg('rpd'), 1));
+  set('ags-k-cpd',  agsFmt(agsAvg('cpd'), 1));
+  set('ags-k-cph',  agsFmt(agsAvg('cph'), 2));
+  set('ags-k-htc',  agsFmt(agsAvg('htc'), 1));
+  set('ags-k-had',  agsFmt(agsAvg('had'), 2));
+  set('ags-k-awt',  agsFmt(agsAvg('awt'), 2));
+  const ltuAvg = agsAvg('ltu');
+  set('ags-k-ltu',  ltuAvg !== null ? agsFmtPct(ltuAvg) : '--');
+  set('ags-k-ahe',  agsFmt(agsAvg('ahtEmail'), 1));
+  set('ags-k-ahc',  agsFmt(agsAvg('ahtChat'), 1));
+  set('ags-k-ems',  agsFmt(agsSum('emailsSent'), 0));
+  set('ags-k-chs',  agsFmt(agsSum('chatsSent'), 0));
+}
+
+function agsLtuCell(v) {
+  if (v === null || isNaN(v)) return '--';
+  const pctVal = v > 1 ? v : v * 100;
+  const fmt = parseFloat(pctVal.toFixed(2)) + '%';
+  if (pctVal >= 90) return `<span class="ags-hl-grn">${fmt}</span>`;
+  if (pctVal >= 75) return `<span class="ags-hl-ylw">${fmt}</span>`;
+  return `<span class="ags-hl-red">${fmt}</span>`;
+}
+
+function agsCmpBadge(company) {
+  if (!company) return '';
+  const cls = company === 'High Social' ? 'ags-cmp-hs' : 'ags-cmp-cl';
+  const lbl = company === 'High Social' ? 'HS' : 'CL';
+  return `<span class="ags-cmp-badge ${cls}">${lbl}</span>`;
+}
+
+function agsRenderTable() {
+  const tbody = document.getElementById('ags-tbody');
+  if (!agsFiltered.length) {
+    tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;color:var(--mut);padding:20px">No records match the current filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = agsFiltered.map(r => `<tr>
+    <td style="text-align:left;font-weight:700;white-space:nowrap;position:sticky;left:0;background:inherit">${r.name}</td>
+    <td style="text-align:left">${agsCmpBadge(r.company)}</td>
+    <td style="white-space:nowrap">${r.fromRaw || ''} - ${r.toRaw || ''}</td>
+    <td>${r.msgs !== null ? r.msgs.toLocaleString() : '--'}</td>
+    <td>${agsFmt(r.days,0)}</td>
+    <td>${r.conv !== null ? r.conv.toLocaleString() : '--'}</td>
+    <td>${agsFmt(r.rpd,1)}</td>
+    <td>${agsFmt(r.cpd,1)}</td>
+    <td>${agsFmt(r.cph,2)}</td>
+    <td>${agsFmt(r.htc,1)}</td>
+    <td>${agsFmt(r.had,2)}</td>
+    <td>${agsFmt(r.awt,2)}</td>
+    <td>${agsLtuCell(r.ltu)}</td>
+    <td>${agsFmt(r.ahtEmail,1)}</td>
+    <td>${agsFmt(r.ahtChat,1)}</td>
+    <td>${agsFmt(r.emailsSent,0)}</td>
+    <td>${agsFmt(r.chatsSent,0)}</td>
+  </tr>`).join('');
+}
+
+function agsBarBlock(entries, unit, colorClass) {
+  if (!entries.length) return '<div class="p" style="font-size:11px;padding:4px 0">No data for current filters.</div>';
+  const max = Math.max(...entries.map(e => e[1]));
+  return entries.map(([lbl, val]) => `
+    <div class="brow">
+      <div class="blbl" title="${lbl}" style="width:130px;font-size:11px;font-weight:600">${lbl}</div>
+      <div class="btrk"><div class="bfil ${colorClass}" style="width:${max ? (val/max*100) : 0}%;height:100%"></div></div>
+      <div style="width:72px;text-align:right;font-size:11px;font-weight:700;color:var(--txt)">${typeof val === 'number' ? agsFmt(val,1) : val}${unit}</div>
+    </div>`).join('');
+}
+
+function agsRenderBars() {
+  // Group by agent name, sum/avg across multiple rows per agent
+  const agentMap = {};
+  agsFiltered.forEach(r => {
+    if (!agentMap[r.name]) agentMap[r.name] = {conv:0, msgs:0, ltuSum:0, ltuCount:0, htcSum:0, htcCount:0};
+    const a = agentMap[r.name];
+    if (r.conv !== null) a.conv += r.conv;
+    if (r.msgs !== null) a.msgs += r.msgs;
+    if (r.ltu  !== null) { a.ltuSum += (r.ltu > 1 ? r.ltu : r.ltu * 100); a.ltuCount++; }
+    if (r.htc  !== null) { a.htcSum += r.htc; a.htcCount++; }
+  });
+
+  const conv = Object.entries(agentMap).map(([n,a]) => [n, a.conv]).sort((a,b) => b[1]-a[1]);
+  const msgs = Object.entries(agentMap).map(([n,a]) => [n, a.msgs]).sort((a,b) => b[1]-a[1]);
+  const ltu  = Object.entries(agentMap).map(([n,a]) => [n, a.ltuCount ? a.ltuSum/a.ltuCount : 0]).sort((a,b) => b[1]-a[1]);
+  const htc  = Object.entries(agentMap).map(([n,a]) => [n, a.htcCount ? a.htcSum/a.htcCount : 0]).sort((a,b) => b[1]-a[1]);
+
+  document.getElementById('ags-bar-conv').innerHTML = agsBarBlock(conv, '', 'bg-blue');
+  document.getElementById('ags-bar-msgs').innerHTML = agsBarBlock(msgs, '', 'bg-blue');
+  document.getElementById('ags-bar-ltu').innerHTML  = agsBarBlock(ltu, '%', 'bg-grn');
+  document.getElementById('ags-bar-htc').innerHTML  = agsBarBlock(htc, ' min', 'bg-ylw');
+}
+
+// ═══════════════════════════════════════════════════
 // OT-TIMEOFF
 // ═══════════════════════════════════════════════════
 const OTT_SHEET_ID = '1Yw2KZgzyKvFuTLrLtO5sNoWpKbfgH5HfH3_0fRo-3dQ';
@@ -1472,6 +1916,9 @@ function ottRenderTable() {
     origGo(id, btn);
     if (id === 'ott' && !ottLoaded) {
       ottLoad();
+    }
+    if (id === 'ags' && !agsLoaded) {
+      agsLoad();
     }
   };
 })();
