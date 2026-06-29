@@ -1617,8 +1617,26 @@ async function agsLoad() {
     // Default date range
     const fromDates = agsAllRows.map(r => r.fromDate).filter(Boolean).sort((a,b) => a-b);
     const toDates   = agsAllRows.map(r => r.toDate).filter(Boolean).sort((a,b) => b-a);
-    if (fromDates.length) document.getElementById('ags-start').value = fromDates[0].toISOString().split('T')[0];
-    if (toDates.length)   document.getElementById('ags-end').value   = toDates[0].toISOString().split('T')[0];
+
+    if (fromDates.length && toDates.length) {
+      // min = first day of the earliest month, max = last day of the latest month
+      const earliest = fromDates[0];
+      const latest   = toDates[0];
+      const minDate  = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+      const maxDate  = new Date(latest.getFullYear(), latest.getMonth() + 1, 0); // last day of latest month
+
+      const minStr = minDate.toISOString().split('T')[0];
+      const maxStr = maxDate.toISOString().split('T')[0];
+
+      const startEl = document.getElementById('ags-start');
+      const endEl   = document.getElementById('ags-end');
+      startEl.min   = minStr;
+      startEl.max   = maxStr;
+      endEl.min     = minStr;
+      endEl.max     = maxStr;
+      startEl.value = minStr;
+      endEl.value   = maxStr;
+    }
 
     agsLoaded = true;
     loading.style.display = 'none';
@@ -1671,8 +1689,20 @@ function agsReset() {
   });
   const fromDates = agsAllRows.map(r => r.fromDate).filter(Boolean).sort((a,b) => a-b);
   const toDates   = agsAllRows.map(r => r.toDate).filter(Boolean).sort((a,b) => b-a);
-  if (fromDates.length) document.getElementById('ags-start').value = fromDates[0].toISOString().split('T')[0];
-  if (toDates.length)   document.getElementById('ags-end').value   = toDates[0].toISOString().split('T')[0];
+  if (fromDates.length && toDates.length) {
+    const earliest = fromDates[0];
+    const latest   = toDates[0];
+    const minDate  = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+    const maxDate  = new Date(latest.getFullYear(), latest.getMonth() + 1, 0);
+    const minStr   = minDate.toISOString().split('T')[0];
+    const maxStr   = maxDate.toISOString().split('T')[0];
+    const startEl  = document.getElementById('ags-start');
+    const endEl    = document.getElementById('ags-end');
+    startEl.min = endEl.min = minStr;
+    startEl.max = endEl.max = maxStr;
+    startEl.value = minStr;
+    endEl.value   = maxStr;
+  }
   agsApply();
 }
 
