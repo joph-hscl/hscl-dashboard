@@ -751,8 +751,23 @@ async function fetchSheet(tabName) {
 
 function parseDate(v) {
   if (!v) return null;
-  if (v instanceof Date) return v;
-  const d = new Date(v);
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  const s = v.toString().trim();
+  // Handle M/D/YYYY or M/D/YY (from Sheets API plain text)
+  const mdyMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (mdyMatch) {
+    let [, m, d, y] = mdyMatch;
+    if (y.length === 2) y = parseInt(y) < 50 ? '20' + y : '19' + y;
+    const dt = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  // Handle YYYY-MM-DD
+  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const dt = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
 
@@ -1527,8 +1542,8 @@ async function agsLoad() {
     }
 
     const CI = {
-      fromDate:   hIdx('1/1','from','start date'),
-      toDate:     hIdx('6/14','to','end date'),
+      fromDate:   2,   // col C — always the period start date (M/D/YYYY)
+      toDate:     3,   // col D — always the period end date   (M/D/YYYY)
       team:       hIdx('team(s)','team'),
       role:       hIdx('role(s)','role'),
       name:       hIdx('full name','agent name','name'),
@@ -1564,8 +1579,10 @@ async function agsLoad() {
 
       const fromRaw  = agsGetStr(row, CI.fromDate);
       const toRaw    = agsGetStr(row, CI.toDate);
+      // Skip rows where col C/D aren't actual dates (e.g. header repetitions)
       const fromDate = parseDate(fromRaw);
       const toDate   = parseDate(toRaw);
+      if (!fromDate || !toDate) return null;
       let ltuRaw     = agsGetNum(row, CI.ltu);
 
       // Messages Sent — col BL (index 63)
