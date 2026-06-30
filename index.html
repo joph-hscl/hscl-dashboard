@@ -2660,14 +2660,13 @@ async function qaLoad() {
       qaFetch('Focused QA'),
     ]);
 
-    // Debug: show detected column map in UI
+    // Debug: show detected column map + raw preview rows of QA Scores
     const scFound = qaFindHeaderRow(rawScores);
     const fmFound = qaFindHeaderRow(rawForm);
     const foFound = qaFindHeaderRow(rawFocused);
     const scHdr = scFound ? scFound.headerRow : null;
     const fmHdr = fmFound ? fmFound.headerRow : rawForm[0] || [];
     const foHdr = foFound ? foFound.headerRow : rawFocused[0] || [];
-    const scMap = scHdr ? qaBuildColMap(scHdr) : null;
     const fmMap = qaBuildColMap(fmHdr);
     const foMap = qaBuildColMap(foHdr);
 
@@ -2678,15 +2677,22 @@ async function qaLoad() {
         ).join(' &nbsp;|&nbsp; ')
       : fallbackNote + ' date:col2 | agent:col3 | auditor:col5 | score:col6 | channel:col20 | company:col25';
 
+    // Show first 3 rows of QA Scores raw — show ALL columns
+    const scPreview = rawScores.slice(0, 4).map((row, i) =>
+      '<div style="margin-top:4px;padding:3px 0;border-bottom:1px solid #f5c06a"><b>Row ' + (i+1) + ':</b> ' +
+      row.map((v, ci) => `<span style="margin-right:4px;white-space:nowrap"><span style="color:#7a5200">C${ci+1}</span>=<b>${(v||'').toString().substring(0,20)||'(empty)'}</b></span>`).join('') +
+      '</div>'
+    ).join('');
+
     const dbg = document.getElementById('qa-colmap-debug');
-    const anyMissing = (scMap && Object.values(scMap).includes(-1)) || Object.values(fmMap).includes(-1);
     dbg.innerHTML =
-      '<b>QA Scores:</b> ' + mapStr(scHdr, scMap || {}) + '<br>' +
+      '<b>QA Scores — first 3 rows (to identify correct columns):</b>' + scPreview +
+      '<hr style="border:none;border-top:1px solid #f5c06a;margin:6px 0">' +
       '<b>QA Form:</b> ' + mapStr(fmHdr, fmMap) + '<br>' +
-      '<b>Focused QA:</b> ' + mapStr(foHdr, foMap) +
-      (anyMissing ? '<br><span style="color:#c0392b;font-weight:700">Some columns used fallback positions. If data looks wrong, share your sheet header row names.</span>' : '');
+      '<b>Focused QA:</b> ' + mapStr(foHdr, foMap);
     dbg.style.display = 'block';
-    console.log('[QA] Scores header row found:', scFound, '| Form:', fmFound, '| Focused:', foFound);
+    console.log('[QA] Scores raw rows 0-2:', rawScores.slice(0,3));
+    console.log('[QA] Form header row found:', fmFound, '| Focused:', foFound);
 
     qaRawScores   = qaParseRows(rawScores);
     qaRawForm     = qaParseFormRows(rawForm);
