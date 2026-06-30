@@ -2644,6 +2644,51 @@ const QA_FORM_COLS = { date: 1, agent: 2, auditor: 4, score: 5, audittype: 18, c
 // QA Scores and Focused QA share the same layout as QA Form for these core fields
 const QA_FALLBACK  = { date: 1, agent: 2, auditor: 4, score: 5, audittype: 18, channel: 19, company: 24 };
 
+// Confirmed QA Scores tab layout — WIDE format, agents as column headers (0-indexed)
+// C1=Charito(2), D1=Rafael(3), E1=Christine(4), F1=Polly(5), G1=Rosie(6), H1=Samantha(7), I1=Rockwell(8)
+// Column A (0) holds row labels: dates, or summary rows like "QA #" / "Average"
+const QA_SCORES_AGENT_COLS = [
+  { name: 'Charito',   idx: 2 },
+  { name: 'Rafael',    idx: 3 },
+  { name: 'Christine', idx: 4 },
+  { name: 'Polly',     idx: 5 },
+  { name: 'Rosie',     idx: 6 },
+  { name: 'Samantha',  idx: 7 },
+  { name: 'Rockwell',  idx: 8 },
+];
+
+// Parse the QA Scores tab from its native wide format (agents as columns)
+// into a flat list of {agent, date, score} records — one per cell with a valid score.
+// Skips summary/label rows (e.g. "QA #", "Average", "#DIV/0!", blank labels).
+function qaParseScoresWide(raw) {
+  if (!raw || raw.length < 2) return [];
+  const out = [];
+  // Data starts at row 2 (index 1) since row 1 (index 0) is the agent-name header row
+  for (let i = 1; i < raw.length; i++) {
+    const row = raw[i];
+    if (!row || !row.length) continue;
+    const label = (row[0] || '').toString().trim();
+    // Skip rows whose label is a summary row, not an actual dated QA entry
+    if (!label) continue;
+    if (/^(qa\s*#|average|avg|total|summary)$/i.test(label)) continue;
+    if (/^#div\/0!?$/i.test(label)) continue;
+
+    const d = parseDate(label);
+    const dateStr = d ? label : label; // keep original label as date string either way
+
+    QA_SCORES_AGENT_COLS.forEach(col => {
+      const raw_v = row[col.idx];
+      if (raw_v === undefined || raw_v === null || raw_v === '') return;
+      const v = raw_v.toString().trim();
+      if (!v || /^#div\/0!?$/i.test(v)) return;
+      const score = parseFloat(v);
+      if (isNaN(score)) return;
+      out.push({ agent: col.name, date: dateStr, score: score });
+    });
+  }
+  return out;
+}
+
 function qaParseRows(raw) {
   if (!raw || raw.length < 2) return [];
   const found = qaFindHeaderRow(raw);
@@ -2853,9 +2898,8 @@ async function qaLoad() {
       qaFetch('Focused QA'),
     ]);
 
-    // Parse using confirmed QA Form - Team (NEW) column positions:
-    // B=1(Date), C=2(Agent), E=4(Auditor), F=5(Score), T=19(Channel), Y=24(Company)
-    qaRawScores  = qaParseRows(rawScores);
+    // QA Scores tab is in WIDE format — agents as column headers (C-I), not row-based
+    qaRawScores  = qaParseScoresWide(rawScores);
     qaRawForm    = qaParseFormRows(rawForm);
     qaRawFocused = qaParseRows(rawFocused).map((r, i) => {
       const orig = rawFocused[i + 1] || [];
@@ -2864,15 +2908,7 @@ async function qaLoad() {
       return { ...r, notes: notesIdx >= 0 ? (orig[notesIdx] || '') : (orig[6] || '') };
     });
 
-    // Diagnostic — open browser console to see detected QA Scores columns
-    const scFound = qaFindHeaderRow(rawScores);
-    if (scFound) {
-      console.log('[QA Scores] Header row detected:', scFound.headerRow);
-      console.log('[QA Scores] Column map:', qaBuildColMap(scFound.headerRow));
-    } else {
-      console.log('[QA Scores] No header row detected in first 5 rows — using QA Form fallback columns. Raw first 3 rows:', rawScores.slice(0,3));
-    }
-    console.log('[QA Scores] Parsed row count:', qaRawScores.length, '| Sample:', qaRawScores.slice(0,3));
+    console.log('[QA Scores] Parsed row count (wide format):', qaRawScores.length, '| Sample:', qaRawScores.slice(0,5));
 
     qaPopulateFilters();
     qaPopulateMirrorFilters();
