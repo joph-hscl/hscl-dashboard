@@ -198,6 +198,22 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .qa-fg label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--navy)}
 .qa-fg select,.qa-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);width:150px;color:var(--txt);max-width:150px}
 .qa-fg select:focus,.qa-fg input:focus{outline:2px solid var(--blue)}
+
+/* QA multi-select dropdown */
+.qa-multi-wrap{position:relative;width:150px}
+.qa-multi-btn{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 26px 5px 8px;font:600 12px/1.4 var(--font);color:var(--txt);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:left;position:relative}
+.qa-multi-btn::after{content:"▾";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--mut)}
+.qa-multi-btn.has-sel{background:#d4e8ff;border-color:var(--blue)}
+.qa-mdd{display:none;position:absolute;top:calc(100% + 3px);left:0;min-width:200px;background:#fff;border:1.5px solid var(--blue);border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:999;max-height:220px;overflow-y:auto}
+.qa-mdd.open{display:block}
+.qa-mdd-search{padding:6px 8px;border-bottom:1px solid var(--bdr)}
+.qa-mdd-search input{width:100%;border:1px solid var(--bdr);border-radius:3px;padding:4px 7px;font:12px var(--font);outline:none}
+.qa-mdd-item{display:flex;align-items:center;gap:7px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:500;transition:background .1s}
+.qa-mdd-item:hover{background:var(--grey)}
+.qa-mdd-item input[type=checkbox]{accent-color:var(--blue);width:13px;height:13px;flex-shrink:0;cursor:pointer}
+.qa-mdd-item label{cursor:pointer;line-height:1.3;user-select:none}
+.qa-mdd-sep{border-top:1px solid var(--bdr);margin:3px 0}
+.qa-mdd-all{font-weight:700;color:var(--navy);background:var(--grey)}
 .qa-tiles{background:#fff;border:1px solid var(--bdr);border-top:none;padding:12px;display:flex;gap:10px;flex-wrap:wrap;border-radius:0 0 4px 4px}
 .qa-card{flex:1;min-width:120px;border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;text-align:center;background:var(--grey)}
 .qa-card .cl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:5px}
@@ -481,22 +497,85 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 
   <!-- FILTER ROW -->
   <div class="qa-frow">
+
+    <!-- Agent Name multi-select -->
     <div class="qa-fg">
       <label>Agent Name</label>
-      <select id="qa-agent"><option value="">All Agents</option></select>
+      <div class="qa-multi-wrap" id="qa-agent-wrap">
+        <button type="button" class="qa-multi-btn" id="qa-agent-btn" onclick="qaMddToggle('agent')">All Agents</button>
+        <div class="qa-mdd" id="qa-agent-dd">
+          <div class="qa-mdd-search"><input type="text" placeholder="Search..." oninput="qaMddSearch('agent',this.value)"></div>
+          <div class="qa-mdd-item qa-mdd-all" onclick="qaMddAll('agent')">
+            <input type="checkbox" id="qa-agent-all" checked><label for="qa-agent-all">All Agents</label>
+          </div>
+          <div class="qa-mdd-sep"></div>
+          <div id="qa-agent-list"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Auditor Name multi-select -->
     <div class="qa-fg">
       <label>Auditor Name</label>
-      <select id="qa-auditor"><option value="">All Auditors</option></select>
+      <div class="qa-multi-wrap" id="qa-auditor-wrap">
+        <button type="button" class="qa-multi-btn" id="qa-auditor-btn" onclick="qaMddToggle('auditor')">All Auditors</button>
+        <div class="qa-mdd" id="qa-auditor-dd">
+          <div class="qa-mdd-search"><input type="text" placeholder="Search..." oninput="qaMddSearch('auditor',this.value)"></div>
+          <div class="qa-mdd-item qa-mdd-all" onclick="qaMddAll('auditor')">
+            <input type="checkbox" id="qa-auditor-all" checked><label for="qa-auditor-all">All Auditors</label>
+          </div>
+          <div class="qa-mdd-sep"></div>
+          <div id="qa-auditor-list"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Audit Type multi-select -->
+    <div class="qa-fg">
+      <label>Audit Type</label>
+      <div class="qa-multi-wrap" id="qa-audittype-wrap">
+        <button type="button" class="qa-multi-btn" id="qa-audittype-btn" onclick="qaMddToggle('audittype')">All Types</button>
+        <div class="qa-mdd" id="qa-audittype-dd">
+          <div class="qa-mdd-item qa-mdd-all" onclick="qaMddAll('audittype')">
+            <input type="checkbox" id="qa-audittype-all" checked><label for="qa-audittype-all">All Types</label>
+          </div>
+          <div class="qa-mdd-sep"></div>
+          <div id="qa-audittype-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Channel multi-select -->
     <div class="qa-fg">
       <label>Channel</label>
-      <select id="qa-channel"><option value="">All Channels</option></select>
+      <div class="qa-multi-wrap" id="qa-channel-wrap">
+        <button type="button" class="qa-multi-btn" id="qa-channel-btn" onclick="qaMddToggle('channel')">All Channels</button>
+        <div class="qa-mdd" id="qa-channel-dd">
+          <div class="qa-mdd-item qa-mdd-all" onclick="qaMddAll('channel')">
+            <input type="checkbox" id="qa-channel-all" checked><label for="qa-channel-all">All Channels</label>
+          </div>
+          <div class="qa-mdd-sep"></div>
+          <div id="qa-channel-list"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Company multi-select -->
     <div class="qa-fg">
       <label>Company</label>
-      <select id="qa-company"><option value="">All Companies</option></select>
+      <div class="qa-multi-wrap" id="qa-company-wrap">
+        <button type="button" class="qa-multi-btn" id="qa-company-btn" onclick="qaMddToggle('company')">All Companies</button>
+        <div class="qa-mdd" id="qa-company-dd">
+          <div class="qa-mdd-item qa-mdd-all" onclick="qaMddAll('company')">
+            <input type="checkbox" id="qa-company-all" checked><label for="qa-company-all">All Companies</label>
+          </div>
+          <div class="qa-mdd-sep"></div>
+          <div id="qa-company-list"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Date range -->
     <div class="qa-fg">
       <label>Start Date</label>
       <input type="date" id="qa-start">
@@ -505,6 +584,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
       <label>End Date</label>
       <input type="date" id="qa-end">
     </div>
+
     <button class="rbtn" onclick="qaApply()">Refresh</button>
     <button class="rbtn" style="background:var(--mut)" onclick="qaReset()">Reset</button>
   </div>
@@ -2527,10 +2607,10 @@ function qaFindHeaderRow(raw) {
 }
 
 // Confirmed column positions from QA Form - Team (NEW) — 0-indexed
-// B=1(Timestamp/Date), C=2(Agent Name), E=4(Auditor Name), F=5(Score), T=19(Channel), Y=24(Company)
-const QA_FORM_COLS = { date: 1, agent: 2, auditor: 4, score: 5, channel: 19, company: 24 };
+// B=1(Timestamp/Date), C=2(Agent Name), E=4(Auditor Name), F=5(Score), S=18(Audit Type), T=19(Channel), Y=24(Company)
+const QA_FORM_COLS = { date: 1, agent: 2, auditor: 4, score: 5, audittype: 18, channel: 19, company: 24 };
 // QA Scores and Focused QA share the same layout as QA Form for these core fields
-const QA_FALLBACK  = { date: 1, agent: 2, auditor: 4, score: 5, channel: 19, company: 24 };
+const QA_FALLBACK  = { date: 1, agent: 2, auditor: 4, score: 5, audittype: 18, channel: 19, company: 24 };
 
 function qaParseRows(raw) {
   if (!raw || raw.length < 2) return [];
@@ -2539,13 +2619,14 @@ function qaParseRows(raw) {
   const found = qaFindHeaderRow(raw);
   const dataStart = found ? found.dataStart : 1;
   return raw.slice(dataStart).map(r => ({
-    date:    qaGet(r, fc.date),
-    agent:   qaGet(r, fc.agent),
-    auditor: qaGet(r, fc.auditor),
-    channel: qaGet(r, fc.channel),
-    company: qaGet(r, fc.company),
-    score:   parseFloat(qaGet(r, fc.score)) || 0,
-    raw:     r,
+    date:      qaGet(r, fc.date),
+    agent:     qaGet(r, fc.agent),
+    auditor:   qaGet(r, fc.auditor),
+    channel:   qaGet(r, fc.channel),
+    company:   qaGet(r, fc.company),
+    audittype: qaGet(r, fc.audittype),
+    score:     parseFloat(qaGet(r, fc.score)) || 0,
+    raw:       r,
   })).filter(r => {
     const a = r.agent;
     return a && a.length > 0 && isNaN(+a) &&
@@ -2579,6 +2660,7 @@ function qaParseFormRows(raw) {
       auditor:   qaGet(r, fc.auditor),
       channel:   qaGet(r, fc.channel),
       company:   qaGet(r, fc.company),
+      audittype: qaGet(r, fc.audittype),
       score:     parseFloat(qaGet(r, fc.score)) || 0,
       markdowns: [],
     };
@@ -2597,43 +2679,102 @@ function qaParseFormRows(raw) {
   });
 }
 
-function qaPopulateFilters() {
-  // All filter options sourced exclusively from QA Form - Team (NEW)
-  // Confirmed columns: C=agent, E=auditor, T=channel, Y=company, B=date
-  const src = qaRawForm;
-  const agents   = [...new Set(src.map(r => r.agent).filter(v => v && isNaN(+v)))].sort();
-  const auditors = [...new Set(src.map(r => r.auditor).filter(v => v && isNaN(+v)))].sort();
-  const channels = [...new Set(src.map(r => r.channel).filter(v => v && isNaN(+v)))].sort();
-  const companies= [...new Set(src.map(r => r.company).filter(v => v && isNaN(+v)))].sort();
+// ── QA Multi-select dropdown engine ──
+const qaMddState = { agent: [], auditor: [], audittype: [], channel: [], company: [] };
+const qaMddLabels = {
+  agent:     'All Agents',
+  auditor:   'All Auditors',
+  audittype: 'All Types',
+  channel:   'All Channels',
+  company:   'All Companies',
+};
 
-  function fillSel(id, items) {
-    const sel = document.getElementById(id);
-    const cur = sel.value;
-    while (sel.options.length > 1) sel.remove(1);
-    items.forEach(v => { const o = new Option(v, v); sel.appendChild(o); });
-    if (items.includes(cur)) sel.value = cur;
+function qaMddToggle(key) {
+  ['agent','auditor','audittype','channel','company'].forEach(k => {
+    if (k !== key) document.getElementById('qa-' + k + '-dd').classList.remove('open');
+  });
+  document.getElementById('qa-' + key + '-dd').classList.toggle('open');
+}
+
+function qaMddSearch(key, val) {
+  document.getElementById('qa-' + key + '-list').querySelectorAll('.qa-mdd-item').forEach(el => {
+    el.style.display = el.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function qaMddAll(key) {
+  qaMddState[key] = [];
+  document.getElementById('qa-' + key + '-list').querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.getElementById('qa-' + key + '-all').checked = true;
+  qaMddUpdateBtn(key);
+}
+
+function qaMddToggleItem(key, val, cbId) {
+  const s = qaMddState[key];
+  const idx = s.indexOf(val);
+  if (idx >= 0) s.splice(idx, 1); else s.push(val);
+  document.getElementById('qa-' + key + '-all').checked = s.length === 0;
+  document.getElementById(cbId).checked = s.includes(val);
+  qaMddUpdateBtn(key);
+}
+
+function qaMddUpdateBtn(key) {
+  const s = qaMddState[key];
+  const btn = document.getElementById('qa-' + key + '-btn');
+  btn.textContent = s.length === 0 ? qaMddLabels[key] : s.length === 1 ? s[0] : s.length + ' selected';
+  btn.classList.toggle('has-sel', s.length > 0);
+}
+
+function qaMddBuildList(key, items) {
+  document.getElementById('qa-' + key + '-list').innerHTML = items.map((v, i) => {
+    const id  = 'qa-' + key + '-opt-' + i;
+    const esc = v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="qa-mdd-item" onclick="qaMddToggleItem('${key}','${esc}','${id}')">
+      <input type="checkbox" id="${id}" onclick="event.stopPropagation();qaMddToggleItem('${key}','${esc}','${id}')">
+      <label for="${id}" onclick="event.stopPropagation()">${v}</label>
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.qa-multi-wrap')) {
+    document.querySelectorAll('.qa-mdd.open').forEach(d => d.classList.remove('open'));
   }
-  fillSel('qa-agent',   agents);
-  fillSel('qa-auditor', auditors);
-  fillSel('qa-channel', channels);
-  fillSel('qa-company', companies);
+});
+
+function qaPopulateFilters() {
+  const src    = qaRawForm;
+  const clean  = v => v && isNaN(+v);
+  const agents     = [...new Set(src.map(r => r.agent).filter(clean))].sort();
+  const auditors   = [...new Set(src.map(r => r.auditor).filter(clean))].sort();
+  const audittypes = [...new Set(src.map(r => r.audittype).filter(Boolean))].sort();
+  const channels   = [...new Set(src.map(r => r.channel).filter(Boolean))].sort();
+  const companies  = [...new Set(src.map(r => r.company).filter(Boolean))].sort();
+
+  qaMddBuildList('agent',     agents);
+  qaMddBuildList('auditor',   auditors);
+  qaMddBuildList('audittype', audittypes);
+  qaMddBuildList('channel',   channels);
+  qaMddBuildList('company',   companies);
 }
 
 function qaFilterRows(rows) {
-  const agent   = document.getElementById('qa-agent').value;
-  const auditor = document.getElementById('qa-auditor').value;
-  const channel = document.getElementById('qa-channel').value;
-  const company = document.getElementById('qa-company').value;
-  const startV  = document.getElementById('qa-start').value;
-  const endV    = document.getElementById('qa-end').value;
-  const sDate   = startV ? new Date(startV + 'T00:00:00') : null;
-  const eDate   = endV   ? new Date(endV   + 'T23:59:59') : null;
+  const agents     = qaMddState.agent;
+  const auditors   = qaMddState.auditor;
+  const audittypes = qaMddState.audittype;
+  const channels   = qaMddState.channel;
+  const companies  = qaMddState.company;
+  const startV = document.getElementById('qa-start').value;
+  const endV   = document.getElementById('qa-end').value;
+  const sDate  = startV ? new Date(startV + 'T00:00:00') : null;
+  const eDate  = endV   ? new Date(endV   + 'T23:59:59') : null;
 
   return rows.filter(r => {
-    if (agent   && r.agent   !== agent)   return false;
-    if (auditor && r.auditor !== auditor) return false;
-    if (channel && r.channel !== channel) return false;
-    if (company && r.company !== company) return false;
+    if (agents.length     && !agents.includes(r.agent))          return false;
+    if (auditors.length   && !auditors.includes(r.auditor))      return false;
+    if (audittypes.length && !audittypes.includes(r.audittype))  return false;
+    if (channels.length   && !channels.includes(r.channel))      return false;
+    if (companies.length  && !companies.includes(r.company))     return false;
     if (sDate || eDate) {
       const d = parseDate(r.date);
       if (!d) return false;
@@ -2644,7 +2785,21 @@ function qaFilterRows(rows) {
   });
 }
 
-async function qaLoad() {
+function qaReset() {
+  ['agent','auditor','audittype','channel','company'].forEach(key => {
+    qaMddState[key] = [];
+    qaMddUpdateBtn(key);
+    const list = document.getElementById('qa-' + key + '-list');
+    if (list) list.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    const allCb = document.getElementById('qa-' + key + '-all');
+    if (allCb) allCb.checked = true;
+  });
+  document.getElementById('qa-start').value = '';
+  document.getElementById('qa-end').value   = '';
+  qaApply();
+}
+
+
   qaLoaded = true;
   const loading = document.getElementById('qa-loading');
   const errEl   = document.getElementById('qa-err');
@@ -2693,16 +2848,6 @@ function qaApply() {
   qaRenderScoresSection();
   qaRenderFormSection();
   qaRenderFocusedSection();
-}
-
-function qaReset() {
-  document.getElementById('qa-agent').value   = '';
-  document.getElementById('qa-auditor').value = '';
-  document.getElementById('qa-channel').value = '';
-  document.getElementById('qa-company').value = '';
-  document.getElementById('qa-start').value   = '';
-  document.getElementById('qa-end').value     = '';
-  qaApply();
 }
 
 function qaSection(id, btn) {
