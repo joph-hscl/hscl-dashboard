@@ -191,6 +191,55 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .ags-cmp-hs{background:#e8f4fb;color:var(--teal)}
 .ags-cmp-cl{background:var(--gbg);color:var(--gfg)}
 .ags-result{font-size:10.5px;color:var(--mut);font-weight:600}
+
+/* ── TEAM QA TAB ── */
+.qa-frow{background:#fff;border:1px solid var(--bdr);border-top:none;padding:10px 16px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.qa-fg{display:flex;flex-direction:column;gap:4px}
+.qa-fg label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--navy)}
+.qa-fg select,.qa-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);min-width:140px;color:var(--txt)}
+.qa-fg select:focus,.qa-fg input:focus{outline:2px solid var(--blue)}
+.qa-tiles{background:#fff;border:1px solid var(--bdr);border-top:none;padding:12px;display:flex;gap:10px;flex-wrap:wrap;border-radius:0 0 4px 4px}
+.qa-card{flex:1;min-width:120px;border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;text-align:center;background:var(--grey)}
+.qa-card .cl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mut);margin-bottom:5px}
+.qa-card .cv{font-size:26px;font-weight:800;line-height:1;color:var(--navy)}
+.qa-card .cs{font-size:9.5px;color:var(--mut);margin-top:3px}
+.qa-card.qa-g{background:var(--gbg);border-color:var(--gbr)}.qa-card.qa-g .cv{color:var(--gfg)}
+.qa-card.qa-r{background:var(--rbg);border-color:var(--rbr)}.qa-card.qa-r .cv{color:var(--rfg)}
+.qa-card.qa-a{background:var(--amb);border-color:var(--abr)}.qa-card.qa-a .cv{color:var(--afg)}
+.qa-card.qa-b{background:#e8f4fb;border-color:#aed6f1}.qa-card.qa-b .cv{color:var(--teal)}
+.qa-score-ring{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.qa-score-ring svg{transform:rotate(-90deg)}
+.qa-ring-val{position:absolute;font-size:11px;font-weight:800;color:var(--navy)}
+.qa-agent-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #eee}
+.qa-agent-row:last-child{border-bottom:none}
+.qa-agent-name{width:130px;font-size:11px;font-weight:600;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qa-agent-bar-wrap{flex:1;height:14px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+.qa-agent-bar{height:100%;border-radius:3px;transition:width .4s ease}
+.qa-agent-score{width:50px;text-align:right;font-size:11px;font-weight:700}
+.qa-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.qa-badge-pass{background:var(--gbg);color:var(--gfg)}
+.qa-badge-fail{background:var(--rbg);color:var(--rfg)}
+.qa-badge-avg{background:var(--amb);color:var(--afg)}
+.qa-badge-hs{background:#e8f4fb;color:var(--teal)}
+.qa-badge-cl{background:var(--gbg);color:var(--gfg)}
+.qa-section-tabs{display:flex;gap:0;border:1px solid var(--bdr);border-bottom:none;border-radius:4px 4px 0 0;overflow:hidden}
+.qa-stab{flex:1;background:var(--grey);color:var(--mut);border:none;border-right:1px solid var(--bdr);padding:9px 14px;font:600 11.5px/1 var(--font);cursor:pointer;transition:all .15s;text-align:center}
+.qa-stab:last-child{border-right:none}
+.qa-stab:hover{background:#e4ecf8;color:var(--navy)}
+.qa-stab.on{background:var(--navy);color:var(--ylw);font-weight:700}
+.qa-section{display:none}.qa-section.on{display:block}
+.qa-trend-dot{display:inline-block;width:8px;height:8px;border-radius:50%}
+.qa-md-bar-wrap{flex:1;height:13px;background:#e8e8e8;border-radius:3px;overflow:hidden}
+.qa-md-bar{height:100%;border-radius:3px;background:#e74c3c;transition:width .4s ease}
+.qa-md-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eee}
+.qa-md-row:last-child{border-bottom:none}
+.qa-md-label{font-size:11px;font-weight:600;flex-shrink:0;width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qa-md-count{width:40px;text-align:right;font-size:11px;font-weight:700;color:var(--rfg)}
+.qa-improve-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #eee}
+.qa-improve-row:last-child{border-bottom:none}
+.qa-trend-up{color:#27ae60;font-weight:700}.qa-trend-dn{color:#e74c3c;font-weight:700}.qa-trend-eq{color:var(--mut)}
+.qa-sparkline{display:flex;align-items:flex-end;gap:2px;height:28px}
+.qa-spark-bar{width:8px;border-radius:2px 2px 0 0;background:var(--blue);opacity:.7}
 </style>
 </head>
 <body>
@@ -202,6 +251,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <button class="tab on"  onclick="go('ful',this)">Dashboard - Fulfillment</button>
     <button class="tab"     onclick="go('ref',this)">Dashboard - Refund</button>
     <button class="tab"     onclick="go('sav',this)">Dashboard - Save Offers</button>
+    <button class="tab"     onclick="go('qa',this)">Team QA</button>
     <button class="tab"     onclick="go('nps',this)">Dashboard - NPS</button>
     <button class="tab"     onclick="go('cst',this)">Dashboard - CSAT</button>
     <button class="tab"     onclick="go('ott',this)">OT-TimeOff</button>
@@ -419,6 +469,253 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
   <div class="err" id="sav-err"></div>
   <div class="sbar" id="sav-showing">Showing: Jan 01, 2026 to Jun 18, 2026 | Total: — cases</div>
   <div id="sav-content"></div>
+</div></div>
+
+<!-- TEAM QA -->
+<div id="pg-qa" class="page"><div class="wrap">
+  <div class="ph">
+    <h1>Team QA Dashboard</h1>
+    <div class="sub" id="qa-sub">Source: HS/CT Team QA 2026 — QA Scores, QA Form - Team (NEW), Focused QA</div>
+  </div>
+  <div class="fbar">FILTERS — Select options then click Refresh to update all sections.</div>
+
+  <!-- FILTER ROW -->
+  <div class="qa-frow">
+    <div class="qa-fg">
+      <label>Agent Name</label>
+      <select id="qa-agent"><option value="">All Agents</option></select>
+    </div>
+    <div class="qa-fg">
+      <label>Auditor Name</label>
+      <select id="qa-auditor"><option value="">All Auditors</option></select>
+    </div>
+    <div class="qa-fg">
+      <label>Channel</label>
+      <select id="qa-channel"><option value="">All Channels</option></select>
+    </div>
+    <div class="qa-fg">
+      <label>Company</label>
+      <select id="qa-company"><option value="">All Companies</option></select>
+    </div>
+    <div class="qa-fg">
+      <label>Start Date</label>
+      <input type="date" id="qa-start">
+    </div>
+    <div class="qa-fg">
+      <label>End Date</label>
+      <input type="date" id="qa-end">
+    </div>
+    <button class="rbtn" onclick="qaApply()">Refresh</button>
+    <button class="rbtn" style="background:var(--mut)" onclick="qaReset()">Reset</button>
+  </div>
+
+  <div class="loading" id="qa-loading">Loading QA data from sheet...</div>
+  <div class="err" id="qa-err"></div>
+  <div class="sbar" id="qa-showing">Loading...</div>
+
+  <!-- SUMMARY TILES -->
+  <div class="sh" style="margin-top:0">Team Overview</div>
+  <div class="qa-tiles">
+    <div class="qa-card qa-b"><div class="cl">Total Reviews</div><div class="cv" id="qa-t-total">--</div><div class="cs">all QA records</div></div>
+    <div class="qa-card qa-g"><div class="cl">Avg QA Score</div><div class="cv" id="qa-t-avg">--</div><div class="cs" id="qa-t-avg-sub">team average</div></div>
+    <div class="qa-card qa-g"><div class="cl">Pass Rate</div><div class="cv" id="qa-t-pass">--</div><div class="cs" id="qa-t-pass-sub">score >= 85%</div></div>
+    <div class="qa-card qa-r"><div class="cl">Fail Rate</div><div class="cv" id="qa-t-fail">--</div><div class="cs" id="qa-t-fail-sub">score < 85%</div></div>
+    <div class="qa-card qa-a"><div class="cl">Agents Reviewed</div><div class="cv" id="qa-t-agents">--</div><div class="cs">unique agents</div></div>
+    <div class="qa-card"><div class="cl">Top Scorer</div><div class="cv" style="font-size:14px;padding-top:4px" id="qa-t-top">--</div><div class="cs" id="qa-t-top-score">--</div></div>
+  </div>
+
+  <!-- SECTION TABS -->
+  <div class="sp"></div>
+  <div class="qa-section-tabs">
+    <button class="qa-stab on" onclick="qaSection('scores',this)">QA Scores</button>
+    <button class="qa-stab"    onclick="qaSection('form',this)">QA Form - Team (NEW)</button>
+    <button class="qa-stab"    onclick="qaSection('focused',this)">Focused QA</button>
+  </div>
+
+  <!-- ── SECTION 1: QA SCORES ── -->
+  <div id="qas-scores" class="qa-section on" style="background:#fff;border:1px solid var(--bdr);border-top:none;padding:14px;border-radius:0 0 4px 4px">
+
+    <!-- Score by Agent -->
+    <div class="g2">
+      <div>
+        <div class="sh" style="margin-top:0">Score by Agent</div>
+        <div class="tw" style="padding:12px 14px" id="qa-agent-bars">
+          <div class="p" style="font-size:11px">Loading...</div>
+        </div>
+      </div>
+      <div>
+        <div class="sh" style="margin-top:0">Score Distribution</div>
+        <div class="tw" style="padding:12px 14px">
+          <div id="qa-dist-bars">
+            <div class="p" style="font-size:11px">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score Over Time -->
+    <div class="sp"></div>
+    <div class="sh">Monthly Average Score - Team Trend</div>
+    <div class="tw" style="padding:14px" id="qa-monthly-trend">
+      <div class="p" style="font-size:11px">Loading...</div>
+    </div>
+
+    <!-- Score by Channel / Company -->
+    <div class="sp"></div>
+    <div class="g2">
+      <div>
+        <div class="sh">Avg Score by Channel</div>
+        <div class="tw" style="padding:12px 14px" id="qa-channel-bars">
+          <div class="p" style="font-size:11px">Loading...</div>
+        </div>
+      </div>
+      <div>
+        <div class="sh">Avg Score by Company</div>
+        <div class="tw" style="padding:12px 14px" id="qa-company-bars">
+          <div class="p" style="font-size:11px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QA Records Table -->
+    <div class="sp"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <div class="sh" style="margin-top:0">All QA Records (Scores Sheet)</div>
+      <div class="ags-result" id="qa-rec-count"></div>
+    </div>
+    <div class="tw ox">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Date</th>
+          <th style="text-align:left">Agent</th>
+          <th style="text-align:left">Auditor</th>
+          <th style="text-align:left">Channel</th>
+          <th style="text-align:left">Company</th>
+          <th>Score</th>
+          <th>Result</th>
+        </tr></thead>
+        <tbody id="qa-scores-tbody">
+          <tr><td colspan="7" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: QA FORM - TEAM (NEW) ── -->
+  <div id="qas-form" class="qa-section" style="background:#fff;border:1px solid var(--bdr);border-top:none;padding:14px;border-radius:0 0 4px 4px">
+
+    <!-- Markdown Breakdown -->
+    <div class="g2">
+      <div>
+        <div class="sh" style="margin-top:0">Most Common Markdowns</div>
+        <div class="tw" style="padding:12px 14px" id="qa-markdowns">
+          <div class="p" style="font-size:11px">Loading...</div>
+        </div>
+      </div>
+      <div>
+        <div class="sh" style="margin-top:0">Markdowns by Agent</div>
+        <div class="tw" style="padding:12px 14px" id="qa-md-by-agent">
+          <div class="p" style="font-size:11px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QA Criteria Performance -->
+    <div class="sp"></div>
+    <div class="sh">Criteria Pass Rate (All Agents)</div>
+    <div class="tw" style="padding:12px 14px" id="qa-criteria-grid">
+      <div class="p" style="font-size:11px">Loading...</div>
+    </div>
+
+    <!-- QA Form Records Table -->
+    <div class="sp"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <div class="sh" style="margin-top:0">All QA Form Records</div>
+      <div class="ags-result" id="qa-form-count"></div>
+    </div>
+    <div class="tw ox">
+      <table id="qa-form-table">
+        <thead><tr>
+          <th style="text-align:left">Date</th>
+          <th style="text-align:left">Agent</th>
+          <th style="text-align:left">Auditor</th>
+          <th style="text-align:left">Channel</th>
+          <th style="text-align:left">Company</th>
+          <th>Score</th>
+          <th>Result</th>
+          <th style="text-align:left">Markdowns</th>
+        </tr></thead>
+        <tbody id="qa-form-tbody">
+          <tr><td colspan="8" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: FOCUSED QA ── -->
+  <div id="qas-focused" class="qa-section" style="background:#fff;border:1px solid var(--bdr);border-top:none;padding:14px;border-radius:0 0 4px 4px">
+
+    <!-- Improvement Trend -->
+    <div class="g2">
+      <div>
+        <div class="sh" style="margin-top:0">Score Improvement by Agent</div>
+        <div class="tw" style="padding:12px 14px" id="qa-improve-agent">
+          <div class="p" style="font-size:11px">Loading...</div>
+        </div>
+      </div>
+      <div>
+        <div class="sh" style="margin-top:0">Score Trend Over Time</div>
+        <div class="tw" style="padding:12px 14px" id="qa-improve-trend">
+          <div class="p" style="font-size:11px">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coaching Focus Areas -->
+    <div class="sp"></div>
+    <div class="sh">Coaching Focus Areas - Recurring Markdowns per Agent</div>
+    <div class="tw ox" id="qa-coaching-table-wrap">
+      <table id="qa-coaching-table">
+        <thead><tr>
+          <th style="text-align:left">Agent</th>
+          <th style="text-align:left">Top Markdown 1</th>
+          <th style="text-align:left">Top Markdown 2</th>
+          <th style="text-align:left">Top Markdown 3</th>
+          <th>Total Reviews</th>
+          <th>Avg Score</th>
+          <th>Trend</th>
+        </tr></thead>
+        <tbody id="qa-coaching-tbody">
+          <tr><td colspan="7" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Focused QA Records -->
+    <div class="sp"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <div class="sh" style="margin-top:0">All Focused QA Records</div>
+      <div class="ags-result" id="qa-focused-count"></div>
+    </div>
+    <div class="tw ox">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Date</th>
+          <th style="text-align:left">Agent</th>
+          <th style="text-align:left">Auditor</th>
+          <th style="text-align:left">Channel</th>
+          <th style="text-align:left">Company</th>
+          <th>Score</th>
+          <th>Result</th>
+          <th style="text-align:left">Focus Area / Notes</th>
+        </tr></thead>
+        <tbody id="qa-focused-tbody">
+          <tr><td colspan="8" style="text-align:center;color:var(--mut);padding:20px">Loading data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div></div>
 
 <!-- NPS (static) -->
@@ -2129,8 +2426,608 @@ function ottRenderTable() {
     origGo(id, btn);
     if (id === 'ott' && !ottLoaded) ottLoad();
     if (id === 'ags' && !agsLoaded) agsLoad();
+    if (id === 'qa'  && !qaLoaded)  qaLoad();
   };
 })();
+
+// ═══════════════════════════════════════════════════
+// TEAM QA TAB
+// ═══════════════════════════════════════════════════
+const QA_SHEET_ID = '1XA1lz__7D3ZgqgsEQcgotRDZWC7dcgNalfhisKB7ZKo';
+
+let qaLoaded       = false;
+let qaRawScores    = [];
+let qaRawForm      = [];
+let qaRawFocused   = [];
+let qaFiltScores   = [];
+let qaFiltForm     = [];
+let qaFiltFocused  = [];
+let qaActiveSection = 'scores';
+
+// Column maps (0-based) — adjust if sheet columns differ
+// QA Scores sheet:   A=Date, B=Agent, C=Auditor, D=Channel, E=Company, F=Score
+// QA Form - Team:    A=Date, B=Agent, C=Auditor, D=Channel, E=Company, F=Score, G+=Criteria cols
+// Focused QA:        A=Date, B=Agent, C=Auditor, D=Channel, E=Company, F=Score, G=Focus/Notes
+const QAC = {date:0, agent:1, auditor:2, channel:3, company:4, score:5};
+const QAF_CRITERIA_START = 6; // index where criteria/markdown columns begin in Form sheet
+const QAFoc_NOTES = 6;
+
+async function qaFetch(tab) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${QA_SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status} fetching "${tab}"`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.values || [];
+}
+
+function qaParseRows(raw) {
+  if (!raw || raw.length < 2) return [];
+  return raw.slice(1).map(r => ({
+    date:    (r[QAC.date]    || '').trim(),
+    agent:   (r[QAC.agent]   || '').trim(),
+    auditor: (r[QAC.auditor] || '').trim(),
+    channel: (r[QAC.channel] || '').trim(),
+    company: (r[QAC.company] || '').trim(),
+    score:   parseFloat(r[QAC.score]) || 0,
+    raw:     r,
+  })).filter(r => r.agent);
+}
+
+function qaParseFormRows(raw) {
+  if (!raw || raw.length < 2) return [];
+  const headers = raw[0];
+  return raw.slice(1).map(r => {
+    const base = {
+      date:    (r[QAC.date]    || '').trim(),
+      agent:   (r[QAC.agent]   || '').trim(),
+      auditor: (r[QAC.auditor] || '').trim(),
+      channel: (r[QAC.channel] || '').trim(),
+      company: (r[QAC.company] || '').trim(),
+      score:   parseFloat(r[QAC.score]) || 0,
+      markdowns: [],
+    };
+    // Collect any criteria/markdown columns that are marked as failed (non-empty, non-pass value)
+    for (let i = QAF_CRITERIA_START; i < headers.length; i++) {
+      const val = (r[i] || '').trim().toLowerCase();
+      if (val && val !== 'pass' && val !== 'ok' && val !== 'n/a' && val !== '1' && val !== 'yes') {
+        base.markdowns.push(headers[i] || ('Col ' + (i+1)));
+      }
+    }
+    return base;
+  }).filter(r => r.agent);
+}
+
+function qaPopulateFilters() {
+  const allRows = [...qaRawScores, ...qaRawForm, ...qaRawFocused];
+  const agents   = [...new Set(allRows.map(r => r.agent).filter(Boolean))].sort();
+  const auditors = [...new Set(allRows.map(r => r.auditor).filter(Boolean))].sort();
+  const channels = [...new Set(allRows.map(r => r.channel).filter(Boolean))].sort();
+  const companies= [...new Set(allRows.map(r => r.company).filter(Boolean))].sort();
+
+  function fillSel(id, items) {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    items.forEach(v => { const o = new Option(v,v); sel.appendChild(o); });
+    if (items.includes(cur)) sel.value = cur;
+  }
+  fillSel('qa-agent',   agents);
+  fillSel('qa-auditor', auditors);
+  fillSel('qa-channel', channels);
+  fillSel('qa-company', companies);
+}
+
+function qaFilterRows(rows) {
+  const agent   = document.getElementById('qa-agent').value;
+  const auditor = document.getElementById('qa-auditor').value;
+  const channel = document.getElementById('qa-channel').value;
+  const company = document.getElementById('qa-company').value;
+  const startV  = document.getElementById('qa-start').value;
+  const endV    = document.getElementById('qa-end').value;
+  const sDate   = startV ? new Date(startV + 'T00:00:00') : null;
+  const eDate   = endV   ? new Date(endV   + 'T23:59:59') : null;
+
+  return rows.filter(r => {
+    if (agent   && r.agent   !== agent)   return false;
+    if (auditor && r.auditor !== auditor) return false;
+    if (channel && r.channel !== channel) return false;
+    if (company && r.company !== company) return false;
+    if (sDate || eDate) {
+      const d = parseDate(r.date);
+      if (!d) return false;
+      if (sDate && d < sDate) return false;
+      if (eDate && d > eDate) return false;
+    }
+    return true;
+  });
+}
+
+async function qaLoad() {
+  qaLoaded = true;
+  const loading = document.getElementById('qa-loading');
+  const errEl   = document.getElementById('qa-err');
+  loading.style.display = 'block';
+  errEl.style.display   = 'none';
+  try {
+    const [rawScores, rawForm, rawFocused] = await Promise.all([
+      qaFetch('QA Scores'),
+      qaFetch('QA Form - Team (NEW)'),
+      qaFetch('Focused QA'),
+    ]);
+    qaRawScores   = qaParseRows(rawScores);
+    qaRawForm     = qaParseFormRows(rawForm);
+    qaRawFocused  = qaParseRows(rawFocused).map((r,i) => ({
+      ...r, notes: (rawFocused[i+1] ? (rawFocused[i+1][QAFoc_NOTES]||'') : ''),
+    }));
+    qaPopulateFilters();
+    qaApply();
+  } catch(e) {
+    errEl.textContent = 'Error loading QA data: ' + e.message;
+    errEl.style.display = 'block';
+    document.getElementById('qa-showing').textContent = 'Error loading data.';
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+
+function qaApply() {
+  qaFiltScores   = qaFilterRows(qaRawScores);
+  qaFiltForm     = qaFilterRows(qaRawForm);
+  qaFiltFocused  = qaFilterRows(qaRawFocused);
+
+  const total = qaFiltScores.length + qaFiltForm.length + qaFiltFocused.length;
+  document.getElementById('qa-showing').textContent =
+    'Showing ' + total + ' total QA records — Scores: ' + qaFiltScores.length +
+    ' | Form: ' + qaFiltForm.length + ' | Focused: ' + qaFiltFocused.length;
+
+  qaRenderSummary();
+  qaRenderScoresSection();
+  qaRenderFormSection();
+  qaRenderFocusedSection();
+}
+
+function qaReset() {
+  document.getElementById('qa-agent').value   = '';
+  document.getElementById('qa-auditor').value = '';
+  document.getElementById('qa-channel').value = '';
+  document.getElementById('qa-company').value = '';
+  document.getElementById('qa-start').value   = '';
+  document.getElementById('qa-end').value     = '';
+  qaApply();
+}
+
+function qaSection(id, btn) {
+  document.querySelectorAll('.qa-section').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.qa-stab').forEach(b => b.classList.remove('on'));
+  document.getElementById('qas-' + id).classList.add('on');
+  btn.classList.add('on');
+  qaActiveSection = id;
+}
+
+// ── Summary Tiles ──
+function qaRenderSummary() {
+  const all = [...qaFiltScores, ...qaFiltForm, ...qaFiltFocused];
+  const total = all.length;
+  document.getElementById('qa-t-total').textContent = total;
+
+  if (!total) {
+    ['qa-t-avg','qa-t-pass','qa-t-fail','qa-t-agents','qa-t-top','qa-t-top-score'].forEach(id => {
+      document.getElementById(id).textContent = '--';
+    });
+    return;
+  }
+
+  const avg   = all.reduce((s,r) => s + r.score, 0) / total;
+  const pass  = all.filter(r => r.score >= 85).length;
+  const fail  = all.filter(r => r.score < 85).length;
+  const agents = [...new Set(all.map(r => r.agent))];
+
+  const agentAvgs = {};
+  agents.forEach(a => {
+    const rows = all.filter(r => r.agent === a);
+    agentAvgs[a] = rows.reduce((s,r) => s+r.score, 0) / rows.length;
+  });
+  const topAgent = Object.entries(agentAvgs).sort((a,b) => b[1]-a[1])[0];
+
+  document.getElementById('qa-t-avg').textContent     = avg.toFixed(1) + '%';
+  document.getElementById('qa-t-avg-sub').textContent = 'across ' + total + ' reviews';
+  document.getElementById('qa-t-pass').textContent    = ((pass/total)*100).toFixed(1) + '%';
+  document.getElementById('qa-t-pass-sub').textContent= pass + ' of ' + total;
+  document.getElementById('qa-t-fail').textContent    = ((fail/total)*100).toFixed(1) + '%';
+  document.getElementById('qa-t-fail-sub').textContent= fail + ' of ' + total;
+  document.getElementById('qa-t-agents').textContent  = agents.length;
+  document.getElementById('qa-t-top').textContent     = topAgent ? topAgent[0] : '--';
+  document.getElementById('qa-t-top-score').textContent = topAgent ? topAgent[1].toFixed(1)+'% avg' : '--';
+}
+
+// ── Bar helper ──
+function qaBarColor(score) {
+  if (score >= 90) return '#27ae60';
+  if (score >= 85) return '#2E75B6';
+  if (score >= 75) return '#f39c12';
+  return '#e74c3c';
+}
+
+function qaAgentBars(rows, containerId) {
+  const el = document.getElementById(containerId);
+  if (!rows.length) { el.innerHTML = '<div class="p" style="font-size:11px">No data for current filters.</div>'; return; }
+  const agents = [...new Set(rows.map(r => r.agent))].sort();
+  const avgs   = agents.map(a => {
+    const ar = rows.filter(r => r.agent === a);
+    return { name: a, avg: ar.reduce((s,r) => s+r.score,0)/ar.length, count: ar.length };
+  }).sort((a,b) => b.avg - a.avg);
+  const max = avgs[0].avg;
+  el.innerHTML = avgs.map(a => `
+    <div class="qa-agent-row">
+      <div class="qa-agent-name" title="${a.name}">${a.name}</div>
+      <div class="qa-agent-bar-wrap">
+        <div class="qa-agent-bar" style="width:${(a.avg/max*100).toFixed(1)}%;background:${qaBarColor(a.avg)}"></div>
+      </div>
+      <div class="qa-agent-score" style="color:${qaBarColor(a.avg)}">${a.avg.toFixed(1)}%</div>
+      <div style="font-size:10px;color:var(--mut);width:40px;text-align:right">${a.count}x</div>
+    </div>`).join('');
+}
+
+// ── QA Scores Section ──
+function qaRenderScoresSection() {
+  const rows = qaFiltScores;
+
+  // Agent bars
+  qaAgentBars(rows, 'qa-agent-bars');
+
+  // Distribution
+  const distEl = document.getElementById('qa-dist-bars');
+  const buckets = [
+    { label:'95-100%', min:95, max:100 },
+    { label:'90-94%',  min:90, max:94.99 },
+    { label:'85-89%',  min:85, max:89.99 },
+    { label:'75-84%',  min:75, max:84.99 },
+    { label:'< 75%',   min:0,  max:74.99 },
+  ];
+  if (!rows.length) {
+    distEl.innerHTML = '<div class="p" style="font-size:11px">No data.</div>';
+  } else {
+    const maxC = Math.max(...buckets.map(b => rows.filter(r => r.score >= b.min && r.score <= b.max).length), 1);
+    distEl.innerHTML = buckets.map(b => {
+      const c = rows.filter(r => r.score >= b.min && r.score <= b.max).length;
+      const col = b.min >= 90 ? '#27ae60' : b.min >= 85 ? '#2E75B6' : b.min >= 75 ? '#f39c12' : '#e74c3c';
+      return `<div class="qa-agent-row">
+        <div class="qa-agent-name">${b.label}</div>
+        <div class="qa-agent-bar-wrap"><div class="qa-agent-bar" style="width:${(c/maxC*100).toFixed(1)}%;background:${col}"></div></div>
+        <div class="qa-agent-score" style="color:${col}">${c}</div>
+        <div style="font-size:10px;color:var(--mut);width:40px;text-align:right">${rows.length ? ((c/rows.length)*100).toFixed(0)+'%' : ''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Monthly trend
+  const trendEl = document.getElementById('qa-monthly-trend');
+  if (!rows.length) {
+    trendEl.innerHTML = '<div class="p" style="font-size:11px">No data.</div>';
+  } else {
+    const byMonth = {};
+    rows.forEach(r => {
+      const d = parseDate(r.date);
+      if (!d) return;
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if (!byMonth[key]) byMonth[key] = [];
+      byMonth[key].push(r.score);
+    });
+    const sorted = Object.entries(byMonth).sort((a,b) => a[0].localeCompare(b[0]));
+    const maxAvg = Math.max(...sorted.map(([,sc]) => sc.reduce((s,v)=>s+v,0)/sc.length), 1);
+    trendEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:16px;padding:8px 0;flex-wrap:wrap">` +
+      sorted.map(([ym, scores]) => {
+        const avg = scores.reduce((s,v)=>s+v,0)/scores.length;
+        const h = Math.max(10, (avg/maxAvg*80)).toFixed(0);
+        const col = qaBarColor(avg);
+        const [y,m] = ym.split('-');
+        const lbl = new Date(+y, +m-1, 1).toLocaleString('default',{month:'short', year:'2-digit'});
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:50px">
+          <div style="font-size:10px;font-weight:700;color:${col}">${avg.toFixed(1)}%</div>
+          <div style="width:100%;height:${h}px;background:${col};border-radius:3px 3px 0 0;opacity:.85"></div>
+          <div style="font-size:9px;color:var(--mut);font-weight:600">${lbl}</div>
+          <div style="font-size:9px;color:var(--mut)">${scores.length}x</div>
+        </div>`;
+      }).join('') + '</div>';
+  }
+
+  // By channel
+  const chEl = document.getElementById('qa-channel-bars');
+  const channels = [...new Set(rows.map(r => r.channel).filter(Boolean))];
+  if (!channels.length) {
+    chEl.innerHTML = '<div class="p" style="font-size:11px">No channel data.</div>';
+  } else {
+    const avgs = channels.map(c => {
+      const cr = rows.filter(r => r.channel === c);
+      return { name: c, avg: cr.reduce((s,r)=>s+r.score,0)/cr.length, count: cr.length };
+    }).sort((a,b) => b.avg-a.avg);
+    const mx = avgs[0].avg;
+    chEl.innerHTML = avgs.map(a => `
+      <div class="qa-agent-row">
+        <div class="qa-agent-name">${a.name}</div>
+        <div class="qa-agent-bar-wrap"><div class="qa-agent-bar" style="width:${(a.avg/mx*100).toFixed(1)}%;background:${qaBarColor(a.avg)}"></div></div>
+        <div class="qa-agent-score" style="color:${qaBarColor(a.avg)}">${a.avg.toFixed(1)}%</div>
+        <div style="font-size:10px;color:var(--mut);width:40px;text-align:right">${a.count}x</div>
+      </div>`).join('');
+  }
+
+  // By company
+  const coEl = document.getElementById('qa-company-bars');
+  const companies = [...new Set(rows.map(r => r.company).filter(Boolean))];
+  if (!companies.length) {
+    coEl.innerHTML = '<div class="p" style="font-size:11px">No company data.</div>';
+  } else {
+    const avgs = companies.map(c => {
+      const cr = rows.filter(r => r.company === c);
+      return { name: c, avg: cr.reduce((s,r)=>s+r.score,0)/cr.length, count: cr.length };
+    }).sort((a,b) => b.avg-a.avg);
+    const mx = avgs[0].avg;
+    coEl.innerHTML = avgs.map(a => `
+      <div class="qa-agent-row">
+        <div class="qa-agent-name">${a.name}</div>
+        <div class="qa-agent-bar-wrap"><div class="qa-agent-bar" style="width:${(a.avg/mx*100).toFixed(1)}%;background:${qaBarColor(a.avg)}"></div></div>
+        <div class="qa-agent-score" style="color:${qaBarColor(a.avg)}">${a.avg.toFixed(1)}%</div>
+        <div style="font-size:10px;color:var(--mut);width:40px;text-align:right">${a.count}x</div>
+      </div>`).join('');
+  }
+
+  // Records table
+  document.getElementById('qa-rec-count').textContent = 'Showing ' + rows.length + ' records';
+  const tbody = document.getElementById('qa-scores-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--mut);padding:20px">No records match filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...rows].sort((a,b) => (b.date||'').localeCompare(a.date||'')).map(r => {
+    const pass = r.score >= 85;
+    const badge = pass
+      ? '<span class="qa-badge qa-badge-pass">Pass</span>'
+      : '<span class="qa-badge qa-badge-fail">Fail</span>';
+    const scoreColor = qaBarColor(r.score);
+    const coBadge = r.company === 'High Social'
+      ? '<span class="qa-badge qa-badge-hs">HS</span>'
+      : r.company === 'Cloutify' ? '<span class="qa-badge qa-badge-cl">CL</span>'
+      : (r.company || '');
+    return `<tr>
+      <td>${r.date}</td>
+      <td style="font-weight:600">${r.agent}</td>
+      <td>${r.auditor}</td>
+      <td>${r.channel}</td>
+      <td>${coBadge}</td>
+      <td style="font-weight:700;color:${scoreColor};text-align:right">${r.score.toFixed(1)}%</td>
+      <td style="text-align:right">${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── QA Form Section ──
+function qaRenderFormSection() {
+  const rows = qaFiltForm;
+
+  // Most common markdowns
+  const mdEl = document.getElementById('qa-markdowns');
+  const mdCount = {};
+  rows.forEach(r => r.markdowns.forEach(m => { mdCount[m] = (mdCount[m]||0) + 1; }));
+  const mdSorted = Object.entries(mdCount).sort((a,b) => b[1]-a[1]).slice(0,15);
+  if (!mdSorted.length) {
+    mdEl.innerHTML = '<div class="p" style="font-size:11px">No markdown data found. Check that criteria columns start at column G in the QA Form sheet.</div>';
+  } else {
+    const mx = mdSorted[0][1];
+    mdEl.innerHTML = mdSorted.map(([label, count]) => `
+      <div class="qa-md-row">
+        <div class="qa-md-label" title="${label}">${label}</div>
+        <div class="qa-md-bar-wrap"><div class="qa-md-bar" style="width:${(count/mx*100).toFixed(1)}%"></div></div>
+        <div class="qa-md-count">${count}</div>
+      </div>`).join('');
+  }
+
+  // Markdowns by agent
+  const mdAgEl = document.getElementById('qa-md-by-agent');
+  const agents = [...new Set(rows.map(r => r.agent))].sort();
+  if (!agents.length) {
+    mdAgEl.innerHTML = '<div class="p" style="font-size:11px">No data.</div>';
+  } else {
+    const agMd = agents.map(a => {
+      const ar = rows.filter(r => r.agent === a);
+      const total = ar.reduce((s,r) => s + r.markdowns.length, 0);
+      return { name: a, total, count: ar.length, avgMd: ar.length ? (total/ar.length).toFixed(1) : '0' };
+    }).sort((a,b) => b.total-a.total);
+    const mx = Math.max(...agMd.map(a=>a.total),1);
+    mdAgEl.innerHTML = agMd.map(a => `
+      <div class="qa-agent-row">
+        <div class="qa-agent-name" title="${a.name}">${a.name}</div>
+        <div class="qa-agent-bar-wrap"><div class="qa-agent-bar" style="width:${(a.total/mx*100).toFixed(1)}%;background:#e74c3c"></div></div>
+        <div class="qa-agent-score" style="color:#e74c3c">${a.total}</div>
+        <div style="font-size:10px;color:var(--mut);width:55px;text-align:right">${a.avgMd} avg/rev</div>
+      </div>`).join('');
+  }
+
+  // Criteria pass rate
+  const critEl = document.getElementById('qa-criteria-grid');
+  if (!mdSorted.length) {
+    critEl.innerHTML = '<div class="p" style="font-size:11px">No criteria data available.</div>';
+  } else {
+    const totalReviews = rows.length || 1;
+    critEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;padding:4px 0">` +
+      mdSorted.map(([label, failCount]) => {
+        const passRate = (((totalReviews - failCount)/totalReviews)*100).toFixed(0);
+        const col = +passRate >= 90 ? '#27ae60' : +passRate >= 75 ? '#f39c12' : '#e74c3c';
+        return `<div style="border:1px solid var(--bdr);border-radius:4px;padding:8px 10px;background:var(--grey)">
+          <div style="font-size:9.5px;font-weight:700;color:var(--mut);margin-bottom:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${label}">${label}</div>
+          <div style="font-size:18px;font-weight:800;color:${col}">${passRate}%</div>
+          <div style="font-size:9px;color:var(--mut);margin-top:2px">Pass rate | ${failCount} fails</div>
+        </div>`;
+      }).join('') + '</div>';
+  }
+
+  // Form records table
+  document.getElementById('qa-form-count').textContent = 'Showing ' + rows.length + ' records';
+  const tbody = document.getElementById('qa-form-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--mut);padding:20px">No records match filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...rows].sort((a,b) => (b.date||'').localeCompare(a.date||'')).map(r => {
+    const pass  = r.score >= 85;
+    const badge = pass ? '<span class="qa-badge qa-badge-pass">Pass</span>' : '<span class="qa-badge qa-badge-fail">Fail</span>';
+    const mds   = r.markdowns.length
+      ? r.markdowns.map(m => `<span style="background:#fce4d6;color:#c0392b;border-radius:10px;padding:1px 7px;font-size:9.5px;font-weight:700;margin-right:3px">${m}</span>`).join('')
+      : '<span style="color:var(--mut);font-size:10px">None</span>';
+    const scoreColor = qaBarColor(r.score);
+    return `<tr>
+      <td>${r.date}</td>
+      <td style="font-weight:600">${r.agent}</td>
+      <td>${r.auditor}</td>
+      <td>${r.channel}</td>
+      <td>${r.company}</td>
+      <td style="font-weight:700;color:${scoreColor};text-align:right">${r.score.toFixed(1)}%</td>
+      <td style="text-align:right">${badge}</td>
+      <td style="text-align:left;max-width:280px">${mds}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Focused QA Section ──
+function qaRenderFocusedSection() {
+  const rows = qaFiltFocused;
+  const formRows = qaFiltForm;
+  const allRows = [...qaFiltScores, ...formRows, ...rows];
+
+  // Score improvement by agent
+  const impEl = document.getElementById('qa-improve-agent');
+  const agents = [...new Set(allRows.map(r => r.agent))].sort();
+  if (!agents.length) {
+    impEl.innerHTML = '<div class="p" style="font-size:11px">No data.</div>';
+  } else {
+    const agData = agents.map(a => {
+      const ar = allRows.filter(r => r.agent === a).filter(r => r.date).sort((x,y) => (x.date||'').localeCompare(y.date||''));
+      if (ar.length < 2) return { name: a, first: ar[0]?.score||0, last: ar[0]?.score||0, diff: 0, count: ar.length };
+      const first = ar.slice(0, Math.ceil(ar.length/2));
+      const last  = ar.slice(Math.ceil(ar.length/2));
+      const firstAvg = first.reduce((s,r)=>s+r.score,0)/first.length;
+      const lastAvg  = last.reduce((s,r)=>s+r.score,0)/last.length;
+      return { name: a, first: firstAvg, last: lastAvg, diff: lastAvg - firstAvg, count: ar.length };
+    }).filter(a => a.count > 0).sort((a,b) => b.diff-a.diff);
+
+    impEl.innerHTML = agData.map(a => {
+      const arrow = a.diff > 0.5 ? '<span class="qa-trend-up">+' + a.diff.toFixed(1) + '%</span>'
+        : a.diff < -0.5 ? '<span class="qa-trend-dn">' + a.diff.toFixed(1) + '%</span>'
+        : '<span class="qa-trend-eq">+0.0%</span>';
+      return `<div class="qa-improve-row">
+        <div class="qa-agent-name" title="${a.name}">${a.name}</div>
+        <div style="font-size:10px;color:var(--mut);width:80px;flex-shrink:0">
+          <span style="color:${qaBarColor(a.first)}">${a.first.toFixed(1)}%</span>
+          <span style="color:var(--mut)"> → </span>
+          <span style="color:${qaBarColor(a.last)}">${a.last.toFixed(1)}%</span>
+        </div>
+        <div style="width:60px;text-align:right;font-size:11px">${arrow}</div>
+        <div style="width:36px;text-align:right;font-size:10px;color:var(--mut)">${a.count}x</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Monthly trend (all combined)
+  const trendEl = document.getElementById('qa-improve-trend');
+  if (!allRows.length) {
+    trendEl.innerHTML = '<div class="p" style="font-size:11px">No data.</div>';
+  } else {
+    const byMonth = {};
+    allRows.forEach(r => {
+      const d = parseDate(r.date);
+      if (!d) return;
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+      if (!byMonth[key]) byMonth[key] = [];
+      byMonth[key].push(r.score);
+    });
+    const sorted = Object.entries(byMonth).sort((a,b) => a[0].localeCompare(b[0]));
+    const maxAvg = Math.max(...sorted.map(([,sc]) => sc.reduce((s,v)=>s+v,0)/sc.length), 1);
+    trendEl.innerHTML = `<div style="display:flex;align-items:flex-end;gap:12px;padding:8px 0;flex-wrap:wrap">` +
+      sorted.map(([ym, scores], idx) => {
+        const avg = scores.reduce((s,v)=>s+v,0)/scores.length;
+        const prev = idx > 0 ? sorted[idx-1][1].reduce((s,v)=>s+v,0)/sorted[idx-1][1].length : null;
+        const h = Math.max(10, (avg/maxAvg*80)).toFixed(0);
+        const col = qaBarColor(avg);
+        const [y,m] = ym.split('-');
+        const lbl = new Date(+y,+m-1,1).toLocaleString('default',{month:'short',year:'2-digit'});
+        const trend = prev !== null
+          ? avg - prev > 0.5 ? '<span style="font-size:9px;color:#27ae60">+' + (avg-prev).toFixed(1) + '</span>'
+          : avg - prev < -0.5 ? '<span style="font-size:9px;color:#e74c3c">' + (avg-prev).toFixed(1) + '</span>'
+          : '<span style="font-size:9px;color:var(--mut)">~</span>'
+          : '';
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:50px">
+          <div style="font-size:10px;font-weight:700;color:${col}">${avg.toFixed(1)}%</div>
+          ${trend}
+          <div style="width:100%;height:${h}px;background:${col};border-radius:3px 3px 0 0;opacity:.85"></div>
+          <div style="font-size:9px;color:var(--mut);font-weight:600">${lbl}</div>
+        </div>`;
+      }).join('') + '</div>';
+  }
+
+  // Coaching table
+  const coachTbody = document.getElementById('qa-coaching-tbody');
+  if (!agents.length) {
+    coachTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--mut);padding:20px">No data.</td></tr>';
+  } else {
+    const rows2 = [...formRows];
+    coachTbody.innerHTML = agents.map(a => {
+      const ar = rows2.filter(r => r.agent === a);
+      const allAgRows = allRows.filter(r => r.agent === a).sort((x,y) => (x.date||'').localeCompare(y.date||''));
+      const avg = allAgRows.length ? (allAgRows.reduce((s,r)=>s+r.score,0)/allAgRows.length).toFixed(1) : '--';
+      const mdMap = {};
+      ar.forEach(r => r.markdowns.forEach(m => { mdMap[m] = (mdMap[m]||0)+1; }));
+      const top3 = Object.entries(mdMap).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([m,c]) => m + ' (' + c + ')');
+      while (top3.length < 3) top3.push('--');
+
+      const half = Math.ceil(allAgRows.length/2);
+      const firstHalf = allAgRows.slice(0, half);
+      const lastHalf  = allAgRows.slice(half);
+      const fAvg = firstHalf.length ? firstHalf.reduce((s,r)=>s+r.score,0)/firstHalf.length : null;
+      const lAvg = lastHalf.length  ? lastHalf.reduce((s,r)=>s+r.score,0)/lastHalf.length   : null;
+      let trend = '<span class="qa-trend-eq">-</span>';
+      if (fAvg !== null && lAvg !== null) {
+        const d = lAvg - fAvg;
+        trend = d > 0.5 ? '<span class="qa-trend-up">Improving</span>'
+              : d < -0.5 ? '<span class="qa-trend-dn">Declining</span>'
+              : '<span class="qa-trend-eq">Stable</span>';
+      }
+
+      const scoreColor = isNaN(avg) ? 'var(--navy)' : qaBarColor(+avg);
+      return `<tr>
+        <td style="font-weight:700">${a}</td>
+        <td style="color:#c0392b;font-size:10.5px">${top3[0]}</td>
+        <td style="color:#c0392b;font-size:10.5px">${top3[1]}</td>
+        <td style="color:#c0392b;font-size:10.5px">${top3[2]}</td>
+        <td>${allAgRows.length}</td>
+        <td style="font-weight:700;color:${scoreColor}">${avg !== '--' ? avg+'%' : '--'}</td>
+        <td>${trend}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Focused QA records
+  document.getElementById('qa-focused-count').textContent = 'Showing ' + rows.length + ' records';
+  const tbody = document.getElementById('qa-focused-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--mut);padding:20px">No records match filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...rows].sort((a,b) => (b.date||'').localeCompare(a.date||'')).map(r => {
+    const pass  = r.score >= 85;
+    const badge = pass ? '<span class="qa-badge qa-badge-pass">Pass</span>' : '<span class="qa-badge qa-badge-fail">Fail</span>';
+    const scoreColor = qaBarColor(r.score);
+    return `<tr>
+      <td>${r.date}</td>
+      <td style="font-weight:600">${r.agent}</td>
+      <td>${r.auditor}</td>
+      <td>${r.channel}</td>
+      <td>${r.company}</td>
+      <td style="font-weight:700;color:${scoreColor};text-align:right">${r.score.toFixed(1)}%</td>
+      <td style="text-align:right">${badge}</td>
+      <td style="text-align:left;color:var(--mut);font-style:italic;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.notes||''}</td>
+    </tr>`;
+  }).join('');
+}
 
 // ═══════════════════════════════════════════════════
 // INIT — load Fulfillment on page load
