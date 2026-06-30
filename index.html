@@ -615,21 +615,31 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
   <!-- ── SECTION 1: QA SCORES ── -->
   <div id="qas-scores" class="qa-section on" style="background:#fff;border:1px solid var(--bdr);border-top:none;padding:14px;border-radius:0 0 4px 4px">
 
-    <!-- Score by Agent -->
-    <div class="g2">
-      <div>
-        <div class="sh" style="margin-top:0">Score by Agent</div>
-        <div class="tw" style="padding:12px 14px" id="qa-agent-bars">
-          <div class="p" style="font-size:11px">Loading...</div>
-        </div>
-      </div>
-      <div>
-        <div class="sh" style="margin-top:0">Score Distribution</div>
-        <div class="tw" style="padding:12px 14px">
-          <div id="qa-dist-bars">
-            <div class="p" style="font-size:11px">Loading...</div>
-          </div>
-        </div>
+    <!-- Score by Agent — Agent x Month matrix -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <div class="sh" style="margin-top:0">Score by Agent — Monthly Average</div>
+      <div class="ags-result" id="qa-agent-month-count"></div>
+    </div>
+    <div class="tw ox">
+      <table id="qa-agent-month-table">
+        <thead><tr id="qa-agent-month-head">
+          <th style="text-align:left">Agent</th>
+          <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+          <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+          <th>Overall Avg</th>
+        </tr></thead>
+        <tbody id="qa-agent-month-tbody">
+          <tr><td colspan="14" style="text-align:center;color:var(--mut);padding:20px">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Score Distribution -->
+    <div class="sp"></div>
+    <div class="sh">Score Distribution</div>
+    <div class="tw" style="padding:12px 14px">
+      <div id="qa-dist-bars">
+        <div class="p" style="font-size:11px">Loading...</div>
       </div>
     </div>
 
@@ -2900,6 +2910,50 @@ function qaBarColor(score) {
   return '#e74c3c';
 }
 
+const QA_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Agent (rows, A-Z) x Month (columns, Jan-Dec) average score matrix
+function qaRenderAgentMonthMatrix(rows) {
+  const tbody = document.getElementById('qa-agent-month-tbody');
+  const countEl = document.getElementById('qa-agent-month-count');
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--mut);padding:20px">No data for current filters.</td></tr>';
+    countEl.textContent = '';
+    return;
+  }
+
+  const agents = [...new Set(rows.map(r => r.agent).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  countEl.textContent = agents.length + ' agent' + (agents.length === 1 ? '' : 's');
+
+  tbody.innerHTML = agents.map(agent => {
+    const agentRows = rows.filter(r => r.agent === agent);
+
+    // Bucket scores by month (0-11), regardless of year — combines same-month data across years
+    const monthBuckets = Array.from({length: 12}, () => []);
+    agentRows.forEach(r => {
+      const d = parseDate(r.date);
+      if (d) monthBuckets[d.getMonth()].push(r.score);
+    });
+
+    const monthCells = monthBuckets.map(scores => {
+      if (!scores.length) return '<td style="color:var(--mut)">--</td>';
+      const avg = scores.reduce((s,v) => s+v, 0) / scores.length;
+      const col = qaBarColor(avg);
+      return `<td style="font-weight:700;color:${col}">${avg.toFixed(1)}%</td>`;
+    }).join('');
+
+    const overallAvg = agentRows.reduce((s,r) => s+r.score, 0) / agentRows.length;
+    const overallCol = qaBarColor(overallAvg);
+
+    return `<tr>
+      <td style="text-align:left;font-weight:700">${agent}</td>
+      ${monthCells}
+      <td style="font-weight:800;color:${overallCol};background:var(--grey)">${overallAvg.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+}
+
 function qaAgentBars(rows, containerId) {
   const el = document.getElementById(containerId);
   if (!rows.length) { el.innerHTML = '<div class="p" style="font-size:11px">No data for current filters.</div>'; return; }
@@ -2924,8 +2978,8 @@ function qaAgentBars(rows, containerId) {
 function qaRenderScoresSection() {
   const rows = qaFiltScores;
 
-  // Agent bars
-  qaAgentBars(rows, 'qa-agent-bars');
+  // Agent x Month matrix
+  qaRenderAgentMonthMatrix(rows);
 
   // Distribution
   const distEl = document.getElementById('qa-dist-bars');
