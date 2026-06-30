@@ -2574,12 +2574,13 @@ function qaBuildColMap(headers) {
   })();
 
   return {
-    date:    qaColIdx(headers, 'date', 'timestamp', 'submission time', 'time'),
-    agent:   qaColIdx(headers, 'agent name', 'agent', 'evaluatee', 'evaluated by', 'name'),
-    auditor: qaColIdx(headers, 'auditor name', 'auditor', 'evaluator', 'qa by', 'reviewed by', 'qa agent'),
-    channel: qaColIdx(headers, 'channel', 'platform', 'contact channel', 'medium'),
-    company: companyIdx,
-    score:   qaColIdx(headers, 'total score', 'final score', 'qa score', 'overall score', 'score', '%'),
+    date:      qaColIdx(headers, 'date', 'timestamp', 'submission time', 'time'),
+    agent:     qaColIdx(headers, 'agent name', 'agent', 'evaluatee', 'evaluated by', 'name'),
+    auditor:   qaColIdx(headers, 'auditor name', 'auditor', 'evaluator', 'qa by', 'reviewed by', 'qa agent'),
+    audittype: qaColIdx(headers, 'audit type', 'qa type', 'review type', 'type'),
+    channel:   qaColIdx(headers, 'channel', 'platform', 'contact channel', 'medium'),
+    company:   companyIdx,
+    score:     qaColIdx(headers, 'total score', 'final score', 'qa score', 'overall score', 'score', '%'),
   };
 }
 
@@ -2610,9 +2611,9 @@ const QA_FALLBACK  = { date: 1, agent: 2, auditor: 4, score: 5, audittype: 18, c
 
 function qaParseRows(raw) {
   if (!raw || raw.length < 2) return [];
-  // Use confirmed column positions — same layout as QA Form - Team (NEW)
-  const fc = QA_FORM_COLS;
   const found = qaFindHeaderRow(raw);
+  // Use detected headers if found; otherwise fall back to QA Form's confirmed layout
+  const fc = found ? qaBuildColMap(found.headerRow) : QA_FALLBACK;
   const dataStart = found ? found.dataStart : 1;
   return raw.slice(dataStart).map(r => ({
     date:      qaGet(r, fc.date),
@@ -2620,7 +2621,7 @@ function qaParseRows(raw) {
     auditor:   qaGet(r, fc.auditor),
     channel:   qaGet(r, fc.channel),
     company:   qaGet(r, fc.company),
-    audittype: qaGet(r, fc.audittype),
+    audittype: qaGet(r, fc.audittype != null ? fc.audittype : -1),
     score:     parseFloat(qaGet(r, fc.score)) || 0,
     raw:       r,
   })).filter(r => {
@@ -2827,6 +2828,16 @@ async function qaLoad() {
       const notesIdx = hdr.findIndex(h => /notes?|focus|comment|remarks?/i.test(h));
       return { ...r, notes: notesIdx >= 0 ? (orig[notesIdx] || '') : (orig[6] || '') };
     });
+
+    // Diagnostic — open browser console to see detected QA Scores columns
+    const scFound = qaFindHeaderRow(rawScores);
+    if (scFound) {
+      console.log('[QA Scores] Header row detected:', scFound.headerRow);
+      console.log('[QA Scores] Column map:', qaBuildColMap(scFound.headerRow));
+    } else {
+      console.log('[QA Scores] No header row detected in first 5 rows — using QA Form fallback columns. Raw first 3 rows:', rawScores.slice(0,3));
+    }
+    console.log('[QA Scores] Parsed row count:', qaRawScores.length, '| Sample:', qaRawScores.slice(0,3));
 
     qaPopulateFilters();
     qaApply();
