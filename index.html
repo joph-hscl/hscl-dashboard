@@ -2499,17 +2499,6 @@ function ottRenderTable() {
   }).join('');
 }
 
-// Load OT-TimeOff / Agent Summary data on first click
-(function() {
-  const origGo = window.go;
-  window.go = function(id, btn) {
-    origGo(id, btn);
-    if (id === 'ott' && !ottLoaded) ottLoad();
-    if (id === 'ags' && !agsLoaded) agsLoad();
-    if (id === 'qa'  && !qaLoaded)  qaLoad();
-  };
-})();
-
 // ═══════════════════════════════════════════════════
 // TEAM QA TAB
 // ═══════════════════════════════════════════════════
@@ -3285,6 +3274,19 @@ function qaRenderFocusedSection() {
 // ═══════════════════════════════════════════════════
 // INIT — load Fulfillment on page load
 // ═══════════════════════════════════════════════════
+
+// Extend go() to lazy-load tab data on first visit
+// Placed here so all functions (go, ottLoad, agsLoad, qaLoad) are already defined
+(function() {
+  const origGo = go;
+  window.go = function(id, btn) {
+    origGo(id, btn);
+    if (id === 'ott' && !ottLoaded) ottLoad();
+    if (id === 'ags' && !agsLoaded) agsLoad();
+    if (id === 'qa'  && !qaLoaded)  qaLoad();
+  };
+})();
+
 window.addEventListener('load', function() {
   refreshFul();
 });
