@@ -2512,46 +2512,83 @@ function qaGet(row, idx) {
   return idx >= 0 ? (row[idx] || '').toString().trim() : '';
 }
 
+// Find the header row — scan first 5 rows for the one that looks like headers
+// Returns {headerRow, dataStartIdx}
+function qaFindHeaderRow(raw) {
+  const REQUIRED = ['agent', 'name', 'score', 'timestamp', 'date', 'auditor', 'channel'];
+  for (let i = 0; i < Math.min(5, raw.length); i++) {
+    const row = raw[i];
+    if (!row || !row.length) continue;
+    const joined = row.map(c => (c||'').toString().toLowerCase()).join(' ');
+    const hits = REQUIRED.filter(k => joined.includes(k));
+    if (hits.length >= 2) return { headerRow: row, dataStart: i + 1 };
+  }
+  // No header found — return null so caller uses confirmed fallback positions
+  return null;
+}
+
+// Confirmed fallback positions based on QA Form/Focused QA detection
+// (col 2=Timestamp, col 3=Agent Name, col 5=Auditor name, col 6=Score, col 20=Channel, col 25=Company — 0-indexed)
+const QA_FALLBACK = { date: 1, agent: 2, auditor: 4, score: 5, channel: 19, company: 24 };
+
 function qaParseRows(raw) {
   if (!raw || raw.length < 2) return [];
-  const headers = raw[0];
-  const c = qaBuildColMap(headers);
-  return raw.slice(1).map(r => ({
-    date:    qaGet(r, c.date),
-    agent:   qaGet(r, c.agent),
-    auditor: qaGet(r, c.auditor),
-    channel: qaGet(r, c.channel),
-    company: qaGet(r, c.company),
-    score:   parseFloat(qaGet(r, c.score)) || 0,
+  const found = qaFindHeaderRow(raw);
+  const headers  = found ? found.headerRow : null;
+  const dataStart = found ? found.dataStart : 1;
+  const c = headers ? qaBuildColMap(headers) : QA_FALLBACK;
+  // Fill in any -1 with fallback
+  const fc = {
+    date:    c.date    >= 0 ? c.date    : QA_FALLBACK.date,
+    agent:   c.agent   >= 0 ? c.agent   : QA_FALLBACK.agent,
+    auditor: c.auditor >= 0 ? c.auditor : QA_FALLBACK.auditor,
+    channel: c.channel >= 0 ? c.channel : QA_FALLBACK.channel,
+    company: c.company >= 0 ? c.company : QA_FALLBACK.company,
+    score:   c.score   >= 0 ? c.score   : QA_FALLBACK.score,
+  };
+  return raw.slice(dataStart).map(r => ({
+    date:    qaGet(r, fc.date),
+    agent:   qaGet(r, fc.agent),
+    auditor: qaGet(r, fc.auditor),
+    channel: qaGet(r, fc.channel),
+    company: qaGet(r, fc.company),
+    score:   parseFloat(qaGet(r, fc.score)) || 0,
     raw:     r,
-    _headers: headers,
-    _c: c,
-  })).filter(r => r.agent && r.agent.length > 0 && isNaN(Date.parse(r.agent)));
+  })).filter(r => {
+    const a = r.agent;
+    return a && a.length > 0 && !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(a) && !/^\d{4}-\d{2}-\d{2}/.test(a);
+  });
 }
 
 function qaParseFormRows(raw) {
   if (!raw || raw.length < 2) return [];
-  const headers = raw[0];
+  const found = qaFindHeaderRow(raw);
+  const headers   = found ? found.headerRow : raw[0];
+  const dataStart = found ? found.dataStart : 1;
   const c = qaBuildColMap(headers);
-
-  // Identify which columns are criteria/markdown columns (everything that isn't a core field)
-  const coreIdxs = new Set(Object.values(c).filter(i => i >= 0));
+  const fc = {
+    date:    c.date    >= 0 ? c.date    : QA_FALLBACK.date,
+    agent:   c.agent   >= 0 ? c.agent   : QA_FALLBACK.agent,
+    auditor: c.auditor >= 0 ? c.auditor : QA_FALLBACK.auditor,
+    channel: c.channel >= 0 ? c.channel : QA_FALLBACK.channel,
+    company: c.company >= 0 ? c.company : QA_FALLBACK.company,
+    score:   c.score   >= 0 ? c.score   : QA_FALLBACK.score,
+  };
+  const coreIdxs = new Set(Object.values(fc));
   const criteriaIdxs = [];
   headers.forEach((h, i) => {
     if (!coreIdxs.has(i) && h && h.toString().trim()) criteriaIdxs.push(i);
   });
-
-  return raw.slice(1).map(r => {
+  return raw.slice(dataStart).map(r => {
     const base = {
-      date:    qaGet(r, c.date),
-      agent:   qaGet(r, c.agent),
-      auditor: qaGet(r, c.auditor),
-      channel: qaGet(r, c.channel),
-      company: qaGet(r, c.company),
-      score:   parseFloat(qaGet(r, c.score)) || 0,
+      date:    qaGet(r, fc.date),
+      agent:   qaGet(r, fc.agent),
+      auditor: qaGet(r, fc.auditor),
+      channel: qaGet(r, fc.channel),
+      company: qaGet(r, fc.company),
+      score:   parseFloat(qaGet(r, fc.score)) || 0,
       markdowns: [],
     };
-    // A cell is a markdown if it has a value that isn't a pass/ok indicator
     criteriaIdxs.forEach(i => {
       const val = (r[i] || '').toString().trim().toLowerCase();
       if (val && val !== 'pass' && val !== 'ok' && val !== 'n/a' && val !== '1' && val !== 'yes' && val !== 'y') {
@@ -2559,7 +2596,10 @@ function qaParseFormRows(raw) {
       }
     });
     return base;
-  }).filter(r => r.agent && r.agent.length > 0 && isNaN(Date.parse(r.agent)));
+  }).filter(r => {
+    const a = r.agent;
+    return a && a.length > 0 && !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(a) && !/^\d{4}-\d{2}-\d{2}/.test(a);
+  });
 }
 
 function qaPopulateFilters() {
@@ -2621,27 +2661,32 @@ async function qaLoad() {
     ]);
 
     // Debug: show detected column map in UI
-    const scMap = rawScores.length > 0 ? qaBuildColMap(rawScores[0] || []) : {};
-    const fmMap = rawForm.length   > 0 ? qaBuildColMap(rawForm[0]   || []) : {};
-    const foMap = rawFocused.length> 0 ? qaBuildColMap(rawFocused[0]|| []) : {};
-    const scHdr = rawScores[0] || [];
-    const fmHdr = rawForm[0]   || [];
-    const foHdr = rawFocused[0]|| [];
-    const mapStr = (hdr, map) =>
-      Object.entries(map).map(([k,i]) =>
-        `<b>${k}</b>: ${i >= 0 ? '"' + (hdr[i]||'') + '" (col ' + (i+1) + ')' : '<span style="color:#c0392b">NOT FOUND</span>'}`
-      ).join(' &nbsp;|&nbsp; ');
+    const scFound = qaFindHeaderRow(rawScores);
+    const fmFound = qaFindHeaderRow(rawForm);
+    const foFound = qaFindHeaderRow(rawFocused);
+    const scHdr = scFound ? scFound.headerRow : null;
+    const fmHdr = fmFound ? fmFound.headerRow : rawForm[0] || [];
+    const foHdr = foFound ? foFound.headerRow : rawFocused[0] || [];
+    const scMap = scHdr ? qaBuildColMap(scHdr) : null;
+    const fmMap = qaBuildColMap(fmHdr);
+    const foMap = qaBuildColMap(foHdr);
+
+    const fallbackNote = '<span style="color:#b7670a">(using fallback positions)</span>';
+    const mapStr = (hdr, map) => hdr
+      ? Object.entries(map).map(([k,i]) =>
+          `<b>${k}</b>: ${i >= 0 ? '"' + (hdr[i]||'') + '" (col ' + (i+1) + ')' : '<span style="color:#c0392b">NOT FOUND</span>'}`
+        ).join(' &nbsp;|&nbsp; ')
+      : fallbackNote + ' date:col2 | agent:col3 | auditor:col5 | score:col6 | channel:col20 | company:col25';
+
     const dbg = document.getElementById('qa-colmap-debug');
-    const anyMissing = Object.values(scMap).includes(-1) || Object.values(fmMap).includes(-1);
+    const anyMissing = (scMap && Object.values(scMap).includes(-1)) || Object.values(fmMap).includes(-1);
     dbg.innerHTML =
-      '<b>Detected columns — QA Scores:</b> ' + mapStr(scHdr, scMap) + '<br>' +
+      '<b>QA Scores:</b> ' + mapStr(scHdr, scMap || {}) + '<br>' +
       '<b>QA Form:</b> ' + mapStr(fmHdr, fmMap) + '<br>' +
       '<b>Focused QA:</b> ' + mapStr(foHdr, foMap) +
-      (anyMissing ? '<br><span style="color:#c0392b;font-weight:700">One or more columns not found — check headers above match your sheet.</span>' : '');
+      (anyMissing ? '<br><span style="color:#c0392b;font-weight:700">Some columns used fallback positions. If data looks wrong, share your sheet header row names.</span>' : '');
     dbg.style.display = 'block';
-    console.log('[QA] Scores headers:', scHdr, '| map:', scMap);
-    console.log('[QA] Form headers:',   fmHdr, '| map:', fmMap);
-    console.log('[QA] Focused headers:',foHdr, '| map:', foMap);
+    console.log('[QA] Scores header row found:', scFound, '| Form:', fmFound, '| Focused:', foFound);
 
     qaRawScores   = qaParseRows(rawScores);
     qaRawForm     = qaParseFormRows(rawForm);
