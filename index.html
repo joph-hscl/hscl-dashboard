@@ -512,7 +512,6 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
   <div class="loading" id="qa-loading">Loading QA data from sheet...</div>
   <div class="err" id="qa-err"></div>
   <div class="sbar" id="qa-showing">Loading...</div>
-  <div id="qa-colmap-debug" style="display:none;background:#fff8ec;border:1px solid #f5c06a;border-top:none;padding:8px 16px;font-size:10.5px;color:#7a5200;line-height:1.8"></div>
 
   <!-- SUMMARY TILES -->
   <div class="sh" style="margin-top:0">Team Overview</div>
@@ -2527,25 +2526,18 @@ function qaFindHeaderRow(raw) {
   return null;
 }
 
-// Confirmed fallback positions based on QA Form/Focused QA detection
-// (col 2=Timestamp, col 3=Agent Name, col 5=Auditor name, col 6=Score, col 20=Channel, col 25=Company — 0-indexed)
-const QA_FALLBACK = { date: 1, agent: 2, auditor: 4, score: 5, channel: 19, company: 24 };
+// Confirmed column positions from QA Form - Team (NEW) — 0-indexed
+// B=1(Timestamp/Date), C=2(Agent Name), E=4(Auditor Name), F=5(Score), T=19(Channel), Y=24(Company)
+const QA_FORM_COLS = { date: 1, agent: 2, auditor: 4, score: 5, channel: 19, company: 24 };
+// QA Scores and Focused QA share the same layout as QA Form for these core fields
+const QA_FALLBACK  = { date: 1, agent: 2, auditor: 4, score: 5, channel: 19, company: 24 };
 
 function qaParseRows(raw) {
   if (!raw || raw.length < 2) return [];
+  // Use confirmed column positions — same layout as QA Form - Team (NEW)
+  const fc = QA_FORM_COLS;
   const found = qaFindHeaderRow(raw);
-  const headers  = found ? found.headerRow : null;
   const dataStart = found ? found.dataStart : 1;
-  const c = headers ? qaBuildColMap(headers) : QA_FALLBACK;
-  // Fill in any -1 with fallback
-  const fc = {
-    date:    c.date    >= 0 ? c.date    : QA_FALLBACK.date,
-    agent:   c.agent   >= 0 ? c.agent   : QA_FALLBACK.agent,
-    auditor: c.auditor >= 0 ? c.auditor : QA_FALLBACK.auditor,
-    channel: c.channel >= 0 ? c.channel : QA_FALLBACK.channel,
-    company: c.company >= 0 ? c.company : QA_FALLBACK.company,
-    score:   c.score   >= 0 ? c.score   : QA_FALLBACK.score,
-  };
   return raw.slice(dataStart).map(r => ({
     date:    qaGet(r, fc.date),
     agent:   qaGet(r, fc.agent),
@@ -2556,37 +2548,38 @@ function qaParseRows(raw) {
     raw:     r,
   })).filter(r => {
     const a = r.agent;
-    return a && a.length > 0 && !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(a) && !/^\d{4}-\d{2}-\d{2}/.test(a);
+    return a && a.length > 0 && isNaN(+a) &&
+           !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(a) &&
+           !/^\d{4}-\d{2}-\d{2}/.test(a);
   });
 }
 
 function qaParseFormRows(raw) {
   if (!raw || raw.length < 2) return [];
-  const found = qaFindHeaderRow(raw);
-  const headers   = found ? found.headerRow : raw[0];
-  const dataStart = found ? found.dataStart : 1;
-  const c = qaBuildColMap(headers);
-  const fc = {
-    date:    c.date    >= 0 ? c.date    : QA_FALLBACK.date,
-    agent:   c.agent   >= 0 ? c.agent   : QA_FALLBACK.agent,
-    auditor: c.auditor >= 0 ? c.auditor : QA_FALLBACK.auditor,
-    channel: c.channel >= 0 ? c.channel : QA_FALLBACK.channel,
-    company: c.company >= 0 ? c.company : QA_FALLBACK.company,
-    score:   c.score   >= 0 ? c.score   : QA_FALLBACK.score,
-  };
+  // Use confirmed column positions from QA Form - Team (NEW):
+  // B=1(Date/Timestamp), C=2(Agent Name), E=4(Auditor Name), F=5(Score), T=19(Channel), Y=24(Company)
+  const fc = QA_FORM_COLS;
+  const headers = raw[0];
+
+  // Criteria/markdown columns = everything except the 6 core fields
   const coreIdxs = new Set(Object.values(fc));
   const criteriaIdxs = [];
   headers.forEach((h, i) => {
     if (!coreIdxs.has(i) && h && h.toString().trim()) criteriaIdxs.push(i);
   });
+
+  // Find actual data start row (skip header + any blank rows)
+  const found = qaFindHeaderRow(raw);
+  const dataStart = found ? found.dataStart : 1;
+
   return raw.slice(dataStart).map(r => {
     const base = {
-      date:    qaGet(r, fc.date),
-      agent:   qaGet(r, fc.agent),
-      auditor: qaGet(r, fc.auditor),
-      channel: qaGet(r, fc.channel),
-      company: qaGet(r, fc.company),
-      score:   parseFloat(qaGet(r, fc.score)) || 0,
+      date:      qaGet(r, fc.date),
+      agent:     qaGet(r, fc.agent),
+      auditor:   qaGet(r, fc.auditor),
+      channel:   qaGet(r, fc.channel),
+      company:   qaGet(r, fc.company),
+      score:     parseFloat(qaGet(r, fc.score)) || 0,
       markdowns: [],
     };
     criteriaIdxs.forEach(i => {
@@ -2598,22 +2591,26 @@ function qaParseFormRows(raw) {
     return base;
   }).filter(r => {
     const a = r.agent;
-    return a && a.length > 0 && !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(a) && !/^\d{4}-\d{2}-\d{2}/.test(a);
+    return a && a.length > 0 && isNaN(+a) &&
+           !/^\d{1,2}\/\d{1,2}\/\d{2,4}/.test(a) &&
+           !/^\d{4}-\d{2}-\d{2}/.test(a);
   });
 }
 
 function qaPopulateFilters() {
-  const allRows = [...qaRawScores, ...qaRawForm, ...qaRawFocused];
-  const agents   = [...new Set(allRows.map(r => r.agent).filter(Boolean))].sort();
-  const auditors = [...new Set(allRows.map(r => r.auditor).filter(Boolean))].sort();
-  const channels = [...new Set(allRows.map(r => r.channel).filter(Boolean))].sort();
-  const companies= [...new Set(allRows.map(r => r.company).filter(Boolean))].sort();
+  // All filter options sourced exclusively from QA Form - Team (NEW)
+  // Confirmed columns: C=agent, E=auditor, T=channel, Y=company, B=date
+  const src = qaRawForm;
+  const agents   = [...new Set(src.map(r => r.agent).filter(v => v && isNaN(+v)))].sort();
+  const auditors = [...new Set(src.map(r => r.auditor).filter(v => v && isNaN(+v)))].sort();
+  const channels = [...new Set(src.map(r => r.channel).filter(v => v && isNaN(+v)))].sort();
+  const companies= [...new Set(src.map(r => r.company).filter(v => v && isNaN(+v)))].sort();
 
   function fillSel(id, items) {
     const sel = document.getElementById(id);
     const cur = sel.value;
     while (sel.options.length > 1) sel.remove(1);
-    items.forEach(v => { const o = new Option(v,v); sel.appendChild(o); });
+    items.forEach(v => { const o = new Option(v, v); sel.appendChild(o); });
     if (items.includes(cur)) sel.value = cur;
   }
   fillSel('qa-agent',   agents);
@@ -2660,43 +2657,11 @@ async function qaLoad() {
       qaFetch('Focused QA'),
     ]);
 
-    // Debug: show detected column map + raw preview rows of QA Scores
-    const scFound = qaFindHeaderRow(rawScores);
-    const fmFound = qaFindHeaderRow(rawForm);
-    const foFound = qaFindHeaderRow(rawFocused);
-    const scHdr = scFound ? scFound.headerRow : null;
-    const fmHdr = fmFound ? fmFound.headerRow : rawForm[0] || [];
-    const foHdr = foFound ? foFound.headerRow : rawFocused[0] || [];
-    const fmMap = qaBuildColMap(fmHdr);
-    const foMap = qaBuildColMap(foHdr);
-
-    const fallbackNote = '<span style="color:#b7670a">(using fallback positions)</span>';
-    const mapStr = (hdr, map) => hdr
-      ? Object.entries(map).map(([k,i]) =>
-          `<b>${k}</b>: ${i >= 0 ? '"' + (hdr[i]||'') + '" (col ' + (i+1) + ')' : '<span style="color:#c0392b">NOT FOUND</span>'}`
-        ).join(' &nbsp;|&nbsp; ')
-      : fallbackNote + ' date:col2 | agent:col3 | auditor:col5 | score:col6 | channel:col20 | company:col25';
-
-    // Show first 3 rows of QA Scores raw — show ALL columns
-    const scPreview = rawScores.slice(0, 4).map((row, i) =>
-      '<div style="margin-top:4px;padding:3px 0;border-bottom:1px solid #f5c06a"><b>Row ' + (i+1) + ':</b> ' +
-      row.map((v, ci) => `<span style="margin-right:4px;white-space:nowrap"><span style="color:#7a5200">C${ci+1}</span>=<b>${(v||'').toString().substring(0,20)||'(empty)'}</b></span>`).join('') +
-      '</div>'
-    ).join('');
-
-    const dbg = document.getElementById('qa-colmap-debug');
-    dbg.innerHTML =
-      '<b>QA Scores — first 3 rows (to identify correct columns):</b>' + scPreview +
-      '<hr style="border:none;border-top:1px solid #f5c06a;margin:6px 0">' +
-      '<b>QA Form:</b> ' + mapStr(fmHdr, fmMap) + '<br>' +
-      '<b>Focused QA:</b> ' + mapStr(foHdr, foMap);
-    dbg.style.display = 'block';
-    console.log('[QA] Scores raw rows 0-2:', rawScores.slice(0,3));
-    console.log('[QA] Form header row found:', fmFound, '| Focused:', foFound);
-
-    qaRawScores   = qaParseRows(rawScores);
-    qaRawForm     = qaParseFormRows(rawForm);
-    qaRawFocused  = qaParseRows(rawFocused).map((r, i) => {
+    // Parse using confirmed QA Form - Team (NEW) column positions:
+    // B=1(Date), C=2(Agent), E=4(Auditor), F=5(Score), T=19(Channel), Y=24(Company)
+    qaRawScores  = qaParseRows(rawScores);
+    qaRawForm    = qaParseFormRows(rawForm);
+    qaRawFocused = qaParseRows(rawFocused).map((r, i) => {
       const orig = rawFocused[i + 1] || [];
       const hdr  = rawFocused[0] || [];
       const notesIdx = hdr.findIndex(h => /notes?|focus|comment|remarks?/i.test(h));
@@ -2706,7 +2671,7 @@ async function qaLoad() {
     qaPopulateFilters();
     qaApply();
   } catch(e) {
-    errEl.textContent = 'Error loading QA data: ' + e.message + '. Check browser console for details.';
+    errEl.textContent = 'Error loading QA data: ' + e.message;
     errEl.style.display = 'block';
     document.getElementById('qa-showing').textContent = 'Error loading data.';
   } finally {
