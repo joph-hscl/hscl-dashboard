@@ -512,6 +512,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
   <div class="loading" id="qa-loading">Loading QA data from sheet...</div>
   <div class="err" id="qa-err"></div>
   <div class="sbar" id="qa-showing">Loading...</div>
+  <div id="qa-colmap-debug" style="display:none;background:#fff8ec;border:1px solid #f5c06a;border-top:none;padding:8px 16px;font-size:10.5px;color:#7a5200;line-height:1.8"></div>
 
   <!-- SUMMARY TILES -->
   <div class="sh" style="margin-top:0">Team Overview</div>
@@ -2453,24 +2454,57 @@ async function qaFetch(tab) {
   return data.values || [];
 }
 
-// Detect column index from header row — searches for keywords, case-insensitive
+// Detect column index from header row
+// Priority: exact match first, then starts-with, then contains
+// Each field has ordered keyword list — first keyword has highest priority
 function qaColIdx(headers, ...keywords) {
-  for (const h of headers) {
-    const idx = headers.indexOf(h);
-    const hn = h.toString().toLowerCase().trim();
-    if (keywords.some(k => hn.includes(k.toLowerCase()))) return idx;
+  const norm = headers.map(h => h ? h.toString().toLowerCase().trim() : '');
+  // 1. Exact match
+  for (const k of keywords) {
+    const i = norm.indexOf(k.toLowerCase());
+    if (i >= 0) return i;
+  }
+  // 2. Starts-with match
+  for (const k of keywords) {
+    const kl = k.toLowerCase();
+    const i = norm.findIndex(h => h.startsWith(kl));
+    if (i >= 0) return i;
+  }
+  // 3. Contains match (only for non-ambiguous keywords)
+  for (const k of keywords) {
+    const kl = k.toLowerCase();
+    const i = norm.findIndex(h => h.includes(kl));
+    if (i >= 0) return i;
   }
   return -1;
 }
 
 function qaBuildColMap(headers) {
+  // Keywords ordered by specificity — most specific first
+  // company uses ONLY exact/starts-with for 'company' or 'hs/cl' to avoid matching Yes/No cols
+  const companyIdx = (() => {
+    const norm = headers.map(h => h ? h.toString().toLowerCase().trim() : '');
+    // Exact match only for company — never partial to avoid 'accountability' etc.
+    const exactTerms = ['company', 'hs/cl', 'hs / cl', 'brand', 'business unit'];
+    for (const k of exactTerms) {
+      const i = norm.indexOf(k);
+      if (i >= 0) return i;
+    }
+    // Starts-with as fallback
+    for (const k of exactTerms) {
+      const i = norm.findIndex(h => h.startsWith(k));
+      if (i >= 0) return i;
+    }
+    return -1;
+  })();
+
   return {
-    date:    qaColIdx(headers, 'date', 'timestamp', 'time'),
-    agent:   qaColIdx(headers, 'agent name', 'agent', 'evaluatee', 'name'),
-    auditor: qaColIdx(headers, 'auditor', 'evaluator', 'qa by', 'reviewed by'),
-    channel: qaColIdx(headers, 'channel', 'platform', 'medium'),
-    company: qaColIdx(headers, 'company', 'brand', 'client', 'account'),
-    score:   qaColIdx(headers, 'score', 'total score', 'final score', 'qa score', '%'),
+    date:    qaColIdx(headers, 'date', 'timestamp', 'submission time', 'time'),
+    agent:   qaColIdx(headers, 'agent name', 'agent', 'evaluatee', 'evaluated by', 'name'),
+    auditor: qaColIdx(headers, 'auditor name', 'auditor', 'evaluator', 'qa by', 'reviewed by', 'qa agent'),
+    channel: qaColIdx(headers, 'channel', 'platform', 'contact channel', 'medium'),
+    company: companyIdx,
+    score:   qaColIdx(headers, 'total score', 'final score', 'qa score', 'overall score', 'score', '%'),
   };
 }
 
@@ -2586,13 +2620,28 @@ async function qaLoad() {
       qaFetch('Focused QA'),
     ]);
 
-    // Debug: show detected headers for verification
+    // Debug: show detected column map in UI
+    const scMap = rawScores.length > 0 ? qaBuildColMap(rawScores[0] || []) : {};
+    const fmMap = rawForm.length   > 0 ? qaBuildColMap(rawForm[0]   || []) : {};
+    const foMap = rawFocused.length> 0 ? qaBuildColMap(rawFocused[0]|| []) : {};
     const scHdr = rawScores[0] || [];
-    const scMap = rawScores.length > 0 ? qaBuildColMap(scHdr) : {};
-    console.log('[QA] QA Scores headers:', scHdr);
-    console.log('[QA] QA Scores col map:', scMap);
-    console.log('[QA] QA Form headers:', rawForm[0] || []);
-    console.log('[QA] Focused QA headers:', rawFocused[0] || []);
+    const fmHdr = rawForm[0]   || [];
+    const foHdr = rawFocused[0]|| [];
+    const mapStr = (hdr, map) =>
+      Object.entries(map).map(([k,i]) =>
+        `<b>${k}</b>: ${i >= 0 ? '"' + (hdr[i]||'') + '" (col ' + (i+1) + ')' : '<span style="color:#c0392b">NOT FOUND</span>'}`
+      ).join(' &nbsp;|&nbsp; ');
+    const dbg = document.getElementById('qa-colmap-debug');
+    const anyMissing = Object.values(scMap).includes(-1) || Object.values(fmMap).includes(-1);
+    dbg.innerHTML =
+      '<b>Detected columns — QA Scores:</b> ' + mapStr(scHdr, scMap) + '<br>' +
+      '<b>QA Form:</b> ' + mapStr(fmHdr, fmMap) + '<br>' +
+      '<b>Focused QA:</b> ' + mapStr(foHdr, foMap) +
+      (anyMissing ? '<br><span style="color:#c0392b;font-weight:700">One or more columns not found — check headers above match your sheet.</span>' : '');
+    dbg.style.display = 'block';
+    console.log('[QA] Scores headers:', scHdr, '| map:', scMap);
+    console.log('[QA] Form headers:',   fmHdr, '| map:', fmMap);
+    console.log('[QA] Focused headers:',foHdr, '| map:', foMap);
 
     qaRawScores   = qaParseRows(rawScores);
     qaRawForm     = qaParseFormRows(rawForm);
