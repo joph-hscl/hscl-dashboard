@@ -2698,15 +2698,6 @@ function qaMddAll(key) {
   qaMddUpdateBtn(key);
 }
 
-function qaMddToggleItem(key, val, cbId) {
-  const s = qaMddState[key];
-  const idx = s.indexOf(val);
-  if (idx >= 0) s.splice(idx, 1); else s.push(val);
-  document.getElementById('qa-' + key + '-all').checked = s.length === 0;
-  document.getElementById(cbId).checked = s.includes(val);
-  qaMddUpdateBtn(key);
-}
-
 function qaMddUpdateBtn(key) {
   const s = qaMddState[key];
   const btn = document.getElementById('qa-' + key + '-btn');
@@ -2715,14 +2706,31 @@ function qaMddUpdateBtn(key) {
 }
 
 function qaMddBuildList(key, items) {
-  document.getElementById('qa-' + key + '-list').innerHTML = items.map((v, i) => {
-    const id  = 'qa-' + key + '-opt-' + i;
-    const esc = v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<div class="qa-mdd-item" onclick="qaMddToggleItem('${key}','${esc}','${id}')">
-      <input type="checkbox" id="${id}" onclick="event.stopPropagation();qaMddToggleItem('${key}','${esc}','${id}')">
+  const list = document.getElementById('qa-' + key + '-list');
+  list.innerHTML = items.map((v, i) => {
+    const id = 'qa-' + key + '-opt-' + i;
+    return `<div class="qa-mdd-item" data-key="${key}" data-val="${v.replace(/"/g,'&quot;')}" data-cb="${id}">
+      <input type="checkbox" id="${id}">
       <label for="${id}" onclick="event.stopPropagation()">${v}</label>
     </div>`;
   }).join('');
+  // Use event delegation — no inline onclick, no escaping issues
+  list.addEventListener('click', function(e) {
+    const item = e.target.closest('.qa-mdd-item');
+    if (!item) return;
+    e.stopPropagation();
+    const k  = item.dataset.key;
+    const v  = item.dataset.val;
+    const cb = item.dataset.cb;
+    if (!k || !v) return;
+    const s = qaMddState[k];
+    const idx = s.indexOf(v);
+    if (idx >= 0) s.splice(idx, 1); else s.push(v);
+    document.getElementById('qa-' + k + '-all').checked = s.length === 0;
+    const cbEl = document.getElementById(cb);
+    if (cbEl) cbEl.checked = s.includes(v);
+    qaMddUpdateBtn(k);
+  });
 }
 
 document.addEventListener('click', function(e) {
