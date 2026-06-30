@@ -193,10 +193,10 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
 .ags-result{font-size:10.5px;color:var(--mut);font-weight:600}
 
 /* ── TEAM QA TAB ── */
-.qa-frow{background:#fff;border:1px solid var(--bdr);border-top:none;padding:10px 16px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.qa-fg{display:flex;flex-direction:column;gap:4px}
+.qa-frow{background:#fff;border:1px solid var(--bdr);border-top:none;padding:10px 16px;display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.qa-fg{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
 .qa-fg label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--navy)}
-.qa-fg select,.qa-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);min-width:140px;color:var(--txt)}
+.qa-fg select,.qa-fg input[type=date]{background:var(--ylw);border:1.5px solid var(--abr);border-radius:3px;padding:5px 8px;font:600 12px/1.4 var(--font);width:150px;color:var(--txt);max-width:150px}
 .qa-fg select:focus,.qa-fg input:focus{outline:2px solid var(--blue)}
 .qa-tiles{background:#fff;border:1px solid var(--bdr);border-top:none;padding:12px;display:flex;gap:10px;flex-wrap:wrap;border-radius:0 0 4px 4px}
 .qa-card{flex:1;min-width:120px;border:1px solid var(--bdr);border-radius:4px;padding:10px 12px;text-align:center;background:var(--grey)}
@@ -2444,14 +2444,6 @@ let qaFiltForm     = [];
 let qaFiltFocused  = [];
 let qaActiveSection = 'scores';
 
-// Column maps (0-based) — adjust if sheet columns differ
-// QA Scores sheet:   A=Date, B=Agent, C=Auditor, D=Channel, E=Company, F=Score
-// QA Form - Team:    A=Date, B=Agent, C=Auditor, D=Channel, E=Company, F=Score, G+=Criteria cols
-// Focused QA:        A=Date, B=Agent, C=Auditor, D=Channel, E=Company, F=Score, G=Focus/Notes
-const QAC = {date:0, agent:1, auditor:2, channel:3, company:4, score:5};
-const QAF_CRITERIA_START = 6; // index where criteria/markdown columns begin in Form sheet
-const QAFoc_NOTES = 6;
-
 async function qaFetch(tab) {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${QA_SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}`;
   const res = await fetch(url);
@@ -2461,41 +2453,79 @@ async function qaFetch(tab) {
   return data.values || [];
 }
 
+// Detect column index from header row — searches for keywords, case-insensitive
+function qaColIdx(headers, ...keywords) {
+  for (const h of headers) {
+    const idx = headers.indexOf(h);
+    const hn = h.toString().toLowerCase().trim();
+    if (keywords.some(k => hn.includes(k.toLowerCase()))) return idx;
+  }
+  return -1;
+}
+
+function qaBuildColMap(headers) {
+  return {
+    date:    qaColIdx(headers, 'date', 'timestamp', 'time'),
+    agent:   qaColIdx(headers, 'agent name', 'agent', 'evaluatee', 'name'),
+    auditor: qaColIdx(headers, 'auditor', 'evaluator', 'qa by', 'reviewed by'),
+    channel: qaColIdx(headers, 'channel', 'platform', 'medium'),
+    company: qaColIdx(headers, 'company', 'brand', 'client', 'account'),
+    score:   qaColIdx(headers, 'score', 'total score', 'final score', 'qa score', '%'),
+  };
+}
+
+function qaGet(row, idx) {
+  return idx >= 0 ? (row[idx] || '').toString().trim() : '';
+}
+
 function qaParseRows(raw) {
   if (!raw || raw.length < 2) return [];
+  const headers = raw[0];
+  const c = qaBuildColMap(headers);
   return raw.slice(1).map(r => ({
-    date:    (r[QAC.date]    || '').trim(),
-    agent:   (r[QAC.agent]   || '').trim(),
-    auditor: (r[QAC.auditor] || '').trim(),
-    channel: (r[QAC.channel] || '').trim(),
-    company: (r[QAC.company] || '').trim(),
-    score:   parseFloat(r[QAC.score]) || 0,
+    date:    qaGet(r, c.date),
+    agent:   qaGet(r, c.agent),
+    auditor: qaGet(r, c.auditor),
+    channel: qaGet(r, c.channel),
+    company: qaGet(r, c.company),
+    score:   parseFloat(qaGet(r, c.score)) || 0,
     raw:     r,
-  })).filter(r => r.agent);
+    _headers: headers,
+    _c: c,
+  })).filter(r => r.agent && r.agent.length > 0 && isNaN(Date.parse(r.agent)));
 }
 
 function qaParseFormRows(raw) {
   if (!raw || raw.length < 2) return [];
   const headers = raw[0];
+  const c = qaBuildColMap(headers);
+
+  // Identify which columns are criteria/markdown columns (everything that isn't a core field)
+  const coreIdxs = new Set(Object.values(c).filter(i => i >= 0));
+  const criteriaIdxs = [];
+  headers.forEach((h, i) => {
+    if (!coreIdxs.has(i) && h && h.toString().trim()) criteriaIdxs.push(i);
+  });
+
   return raw.slice(1).map(r => {
     const base = {
-      date:    (r[QAC.date]    || '').trim(),
-      agent:   (r[QAC.agent]   || '').trim(),
-      auditor: (r[QAC.auditor] || '').trim(),
-      channel: (r[QAC.channel] || '').trim(),
-      company: (r[QAC.company] || '').trim(),
-      score:   parseFloat(r[QAC.score]) || 0,
+      date:    qaGet(r, c.date),
+      agent:   qaGet(r, c.agent),
+      auditor: qaGet(r, c.auditor),
+      channel: qaGet(r, c.channel),
+      company: qaGet(r, c.company),
+      score:   parseFloat(qaGet(r, c.score)) || 0,
       markdowns: [],
     };
-    // Collect any criteria/markdown columns that are marked as failed (non-empty, non-pass value)
-    for (let i = QAF_CRITERIA_START; i < headers.length; i++) {
-      const val = (r[i] || '').trim().toLowerCase();
-      if (val && val !== 'pass' && val !== 'ok' && val !== 'n/a' && val !== '1' && val !== 'yes') {
-        base.markdowns.push(headers[i] || ('Col ' + (i+1)));
+    // A cell is a markdown if it has a value that isn't a pass/ok indicator
+    criteriaIdxs.forEach(i => {
+      const val = (r[i] || '').toString().trim().toLowerCase();
+      if (val && val !== 'pass' && val !== 'ok' && val !== 'n/a' && val !== '1' && val !== 'yes' && val !== 'y') {
+        base.markdowns.push(headers[i].toString().trim());
       }
-    }
+    });
     return base;
-  }).filter(r => r.agent);
+  }).filter(r => r.agent && r.agent.length > 0 && isNaN(Date.parse(r.agent)));
 }
 
 function qaPopulateFilters() {
@@ -2555,15 +2585,28 @@ async function qaLoad() {
       qaFetch('QA Form - Team (NEW)'),
       qaFetch('Focused QA'),
     ]);
+
+    // Debug: show detected headers for verification
+    const scHdr = rawScores[0] || [];
+    const scMap = rawScores.length > 0 ? qaBuildColMap(scHdr) : {};
+    console.log('[QA] QA Scores headers:', scHdr);
+    console.log('[QA] QA Scores col map:', scMap);
+    console.log('[QA] QA Form headers:', rawForm[0] || []);
+    console.log('[QA] Focused QA headers:', rawFocused[0] || []);
+
     qaRawScores   = qaParseRows(rawScores);
     qaRawForm     = qaParseFormRows(rawForm);
-    qaRawFocused  = qaParseRows(rawFocused).map((r,i) => ({
-      ...r, notes: (rawFocused[i+1] ? (rawFocused[i+1][QAFoc_NOTES]||'') : ''),
-    }));
+    qaRawFocused  = qaParseRows(rawFocused).map((r, i) => {
+      const orig = rawFocused[i + 1] || [];
+      const hdr  = rawFocused[0] || [];
+      const notesIdx = hdr.findIndex(h => /notes?|focus|comment|remarks?/i.test(h));
+      return { ...r, notes: notesIdx >= 0 ? (orig[notesIdx] || '') : (orig[6] || '') };
+    });
+
     qaPopulateFilters();
     qaApply();
   } catch(e) {
-    errEl.textContent = 'Error loading QA data: ' + e.message;
+    errEl.textContent = 'Error loading QA data: ' + e.message + '. Check browser console for details.';
     errEl.style.display = 'block';
     document.getElementById('qa-showing').textContent = 'Error loading data.';
   } finally {
