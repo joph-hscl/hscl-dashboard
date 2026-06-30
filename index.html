@@ -656,7 +656,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <div class="tw ox">
       <table id="qa-mirror-table">
         <thead><tr id="qa-mirror-head">
-          <th style="text-align:left">Month</th>
+          <th style="text-align:left">Agent</th>
         </tr></thead>
         <tbody id="qa-mirror-tbody">
           <tr><td style="text-align:center;color:var(--mut);padding:20px">Loading...</td></tr>
@@ -1189,6 +1189,30 @@ function parseDate(v) {
   if (isoMatch) {
     const dt = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
     return isNaN(dt.getTime()) ? null : dt;
+  }
+  // Handle M-D-YYYY or M.D.YYYY (dash/dot separated)
+  const altMatch = s.match(/^(\d{1,2})[.\-](\d{1,2})[.\-](\d{2,4})$/);
+  if (altMatch) {
+    let [, m, d, y] = altMatch;
+    if (y.length === 2) y = parseInt(y) < 50 ? '20' + y : '19' + y;
+    const dt = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+  // Handle Google Sheets serial date number (days since Dec 30 1899)
+  // Only treat as serial if it's a plain integer in a plausible range (~ years 2000-2100)
+  if (/^\d{4,6}(\.\d+)?$/.test(s)) {
+    const serial = parseFloat(s);
+    if (serial > 25000 && serial < 75000) {
+      const epoch = new Date(1899, 11, 30);
+      const dt = new Date(epoch.getTime() + serial * 86400000);
+      if (!isNaN(dt.getTime())) return dt;
+    }
+  }
+  // Handle "Month D, YYYY" / "Mon D, YYYY" / "Month D YYYY"
+  const longMatch = s.match(/^([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{4})$/);
+  if (longMatch) {
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime())) return dt;
   }
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
@@ -2907,6 +2931,8 @@ async function qaLoad() {
     });
 
     console.log('[QA Scores] Parsed row count (wide format):', qaRawScores.length, '| Sample:', qaRawScores.slice(0,5));
+    console.log('[QA Scores] Raw column A (date label) values, rows 1-10:', rawScores.slice(1,11).map(r => r && r[0]));
+    console.log('[QA Scores] parseDate results for those:', rawScores.slice(1,11).map(r => r && r[0] ? parseDate(r[0]) : null));
 
     qaPopulateFilters();
     qaPopulateMirrorFilters();
@@ -3028,16 +3054,16 @@ function qaRenderMirrorTable() {
     const d = parseDate(r.date);
     return d && d.getFullYear() === parseInt(yearF, 10);
   });
-  // Month filter narrows which month rows are displayed, applied after pivoting below
+  // Month filter narrows which month columns are displayed, applied after pivoting below
 
   if (!rows.length) {
-    thead.innerHTML = '<th style="text-align:left">Month</th>';
+    thead.innerHTML = '<th style="text-align:left">Agent</th>';
     tbody.innerHTML = '<tr><td style="text-align:center;color:var(--mut);padding:20px">No records match the selected filters.</td></tr>';
     countEl.textContent = '';
     return;
   }
 
-  // Agents become columns — alphabetical, limited to whichever agents remain after the Agent filter
+  // Agents become rows — alphabetical, limited to whichever agents remain after the Agent filter
   const agents = [...new Set(rows.map(r => r.agent))].sort((a,b) => a.localeCompare(b));
 
   // Bucket each agent's scores by month (0-11), combining same-month data across years
@@ -3048,35 +3074,32 @@ function qaRenderMirrorTable() {
     if (d) agentMonthBuckets[r.agent][d.getMonth()].push(r.score);
   });
 
-  // Header row: Month | Agent1 | Agent2 | ...
-  thead.innerHTML = '<th style="text-align:left">Month</th>' +
-    agents.map(a => `<th title="${a}">${a}</th>`).join('');
-
-  // Which months to show — all 12, or just the one selected via the Month filter
+  // Which months to show as columns — all 12, or just the one selected via the Month filter
   const monthIdxs = monthF !== '' ? [parseInt(monthF, 10)] : [0,1,2,3,4,5,6,7,8,9,10,11];
 
-  let totalCells = 0;
-  const monthRows = monthIdxs.map(mIdx => {
-    const cells = agents.map(a => {
-      const scores = agentMonthBuckets[a][mIdx];
+  // Header row: Agent | Jan | Feb | ... | Overall Average
+  thead.innerHTML = '<th style="text-align:left">Agent</th>' +
+    monthIdxs.map(mIdx => `<th>${QA_MONTH_NAMES[mIdx]}</th>`).join('') +
+    '<th>Overall Average</th>';
+
+  // One row per agent
+  const agentRowsHtml = agents.map(agent => {
+    const cells = monthIdxs.map(mIdx => {
+      const scores = agentMonthBuckets[agent][mIdx];
       if (!scores.length) return '<td style="color:var(--mut)">--</td>';
-      totalCells += scores.length;
       const avg = scores.reduce((s,v) => s+v, 0) / scores.length;
       return `<td style="font-weight:700;color:${qaBarColor(avg)}">${avg.toFixed(1)}%</td>`;
     }).join('');
-    return `<tr><td style="text-align:left;font-weight:700">${QA_MONTH_NAMES[mIdx]}</td>${cells}</tr>`;
+
+    const agentAllRows = rows.filter(r => r.agent === agent);
+    const overallCell = agentAllRows.length
+      ? `<td style="font-weight:800;color:${qaBarColor(agentAllRows.reduce((s,r)=>s+r.score,0)/agentAllRows.length)};background:var(--grey)">${(agentAllRows.reduce((s,r)=>s+r.score,0)/agentAllRows.length).toFixed(1)}%</td>`
+      : '<td style="color:var(--mut);background:var(--grey)">--</td>';
+
+    return `<tr><td style="text-align:left;font-weight:700">${agent}</td>${cells}${overallCell}</tr>`;
   }).join('');
 
-  // Overall Average row — each agent's average across all their records in the current filter scope
-  const overallCells = agents.map(a => {
-    const agentRows = rows.filter(r => r.agent === a);
-    if (!agentRows.length) return '<td style="color:var(--mut)">--</td>';
-    const avg = agentRows.reduce((s,r) => s+r.score, 0) / agentRows.length;
-    return `<td style="font-weight:800;color:${qaBarColor(avg)}">${avg.toFixed(1)}%</td>`;
-  }).join('');
-  const overallRow = `<tr class="gt"><td style="text-align:left">Overall Average</td>${overallCells}</tr>`;
-
-  tbody.innerHTML = monthRows + overallRow;
+  tbody.innerHTML = agentRowsHtml;
   countEl.textContent = agents.length + ' agent' + (agents.length === 1 ? '' : 's') + ', ' + rows.length + ' record' + (rows.length === 1 ? '' : 's');
 }
 
