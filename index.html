@@ -651,10 +651,16 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
           <option value="">All Years</option>
         </select>
       </div>
+      <div class="qa-fg">
+        <label>Audit Type</label>
+        <select id="qa-mirror-audittype" onchange="qaRenderMirrorTable()">
+          <option value="">All Types</option>
+        </select>
+      </div>
       <button class="rbtn" style="background:var(--mut)" onclick="qaMirrorReset()">Reset</button>
     </div>
     <div class="tw ox">
-      <table id="qa-mirror-table">
+      <table id="qa-mirror-table" style="table-layout:fixed">
         <thead><tr id="qa-mirror-head">
           <th style="text-align:left">Agent</th>
         </tr></thead>
@@ -3051,31 +3057,43 @@ function qaBarColor(score) {
 
 const QA_MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// Populate the mirror table's own Agent / Year filter dropdowns from QA Scores tab data
+// Populate the mirror table's own Agent / Year / Audit Type filter dropdowns
 function qaPopulateMirrorFilters() {
   const agentSel = document.getElementById('qa-mirror-agent');
   const yearSel  = document.getElementById('qa-mirror-year');
+  const atSel    = document.getElementById('qa-mirror-audittype');
   const curAgent = agentSel.value;
   const curYear  = yearSel.value;
 
   const agents = [...new Set(qaMonthlyAverages.map(r => r.agent).filter(Boolean))].sort((a,b) => a.localeCompare(b));
   const years = [...new Set(qaMonthlyAverages.map(r => r.year).filter(Boolean))].sort((a,b) => b - a);
+  // Audit Type options come from Column S of the QA Form - Team (NEW) tab
+  const auditTypes = [...new Set(qaRawForm.map(r => r.audittype).filter(Boolean))].sort((a,b) => a.localeCompare(b));
 
   agentSel.innerHTML = '<option value="">All Agents</option>' +
     agents.map(a => `<option value="${a.replace(/"/g,'&quot;')}">${a}</option>`).join('');
   yearSel.innerHTML = '<option value="">All Years</option>' +
     years.map(y => `<option value="${y}">${y}</option>`).join('');
+  atSel.innerHTML = '<option value="">All Types</option>' +
+    auditTypes.map(t => `<option value="${t.replace(/"/g,'&quot;')}">${t}</option>`).join('');
 
   if (agents.includes(curAgent)) agentSel.value = curAgent;
   if (years.map(String).includes(curYear)) yearSel.value = curYear;
+
+  // Default to "QA" audit type so Agent Average reflects QA evaluations only — switch the
+  // dropdown to another type, or "All Types", to see that instead.
+  const qaOpt = auditTypes.find(t => t.trim().toUpperCase() === 'QA');
+  atSel.value = qaOpt || '';
 }
 
-// Render the QA Scores mirror table — filtered by its own Agent / Month / Year dropdowns
-// Data source: QA Scores tab (qaRawScores / qaMonthlyAverages) — independent of the global page filters
+// Render the QA Scores mirror table — filtered by its own Agent / Month / Year / Audit Type dropdowns.
+// Monthly columns come from the QA Scores tab (qaMonthlyAverages); "Agent Average" comes from the
+// QA Form - Team (NEW) tab's Score column (F), restricted to the selected Audit Type (Column S).
 function qaRenderMirrorTable() {
   const agentF = document.getElementById('qa-mirror-agent').value;
   const monthF = document.getElementById('qa-mirror-month').value;
   const yearF  = document.getElementById('qa-mirror-year').value;
+  const atF    = document.getElementById('qa-mirror-audittype').value;
   const thead  = document.getElementById('qa-mirror-head');
   const tbody  = document.getElementById('qa-mirror-tbody');
   const countEl = document.getElementById('qa-mirror-count');
@@ -3084,11 +3102,16 @@ function qaRenderMirrorTable() {
   if (agentF) avgRows = avgRows.filter(r => r.agent === agentF);
   if (yearF)  avgRows = avgRows.filter(r => r.year === parseInt(yearF, 10));
 
-  let scoreRows = qaRawScores.filter(r => r.agent);
-  if (agentF) scoreRows = scoreRows.filter(r => r.agent === agentF);
-  if (yearF)  scoreRows = scoreRows.filter(r => r.year === parseInt(yearF, 10));
+  // Agent Average source: QA Form - Team (NEW) — Column F (score), restricted to Column S (audittype)
+  let formRows = qaRawForm.filter(r => r.agent);
+  if (agentF) formRows = formRows.filter(r => r.agent === agentF);
+  if (atF)    formRows = formRows.filter(r => r.audittype === atF);
+  if (yearF)  formRows = formRows.filter(r => {
+    const d = parseDate(r.date);
+    return d && d.getFullYear() === parseInt(yearF, 10);
+  });
 
-  if (!avgRows.length && !scoreRows.length) {
+  if (!avgRows.length && !formRows.length) {
     thead.innerHTML = '<th style="text-align:left">Agent</th>';
     tbody.innerHTML = '<tr><td style="text-align:center;color:var(--mut);padding:20px">No records match the selected filters.</td></tr>';
     countEl.textContent = '';
@@ -3096,7 +3119,7 @@ function qaRenderMirrorTable() {
   }
 
   // Agents become rows — alphabetical, limited to whichever agents remain after the Agent filter
-  const agents = [...new Set([...avgRows.map(r => r.agent), ...scoreRows.map(r => r.agent)])].sort((a,b) => a.localeCompare(b));
+  const agents = [...new Set([...avgRows.map(r => r.agent), ...formRows.map(r => r.agent)])].sort((a,b) => a.localeCompare(b));
 
   // Each agent's official monthly average, straight from the sheet's own "Average" row per month
   const agentMonthAvg = {};
@@ -3106,14 +3129,19 @@ function qaRenderMirrorTable() {
   // Which months to show as columns — all 12, or just the one selected via the Month filter
   const monthIdxs = monthF !== '' ? [parseInt(monthF, 10)] : [0,1,2,3,4,5,6,7,8,9,10,11];
 
-  // Header row: Agent | Jan | Feb ... | Agent Average
-  thead.innerHTML = '<th style="text-align:left">Agent</th>' +
-    monthIdxs.map(mIdx => `<th>${QA_MONTH_NAMES[mIdx]}</th>`).join('') +
-    '<th>Agent Average</th>';
+  // Equal-width Jan–Dec columns (table has table-layout:fixed) — Agent / Agent Average get fixed
+  // widths, the remaining space is split evenly across however many month columns are shown.
+  const agentColPct   = 14;
+  const overallColPct = 14;
+  const monthColPct   = ((100 - agentColPct - overallColPct) / monthIdxs.length).toFixed(2);
 
-  // One row per agent — "Agent Average" mirrors the sheet's YTD AVERAGE row (C145 etc.), which
-  // averages every individual weekly score cell for that agent across all months, not the
-  // month-by-month "Average" rows.
+  // Header row: Agent | Jan | Feb ... | Agent Average
+  thead.innerHTML = `<th style="text-align:left;width:${agentColPct}%">Agent</th>` +
+    monthIdxs.map(mIdx => `<th style="width:${monthColPct}%">${QA_MONTH_NAMES[mIdx]}</th>`).join('') +
+    `<th style="width:${overallColPct}%">Agent Average</th>`;
+
+  // One row per agent — "Agent Average" = mean of that agent's QA Form Score (col F) entries
+  // whose Audit Type (col S) matches the selected filter (defaults to "QA").
   const agentRowsHtml = agents.map(agent => {
     const cells = monthIdxs.map(mIdx => {
       const avg = agentMonthAvg[agent][mIdx];
@@ -3121,9 +3149,9 @@ function qaRenderMirrorTable() {
       return `<td style="font-weight:700;color:${qaBarColor(avg)}">${avg.toFixed(1)}%</td>`;
     }).join('');
 
-    const agentScoreRows = scoreRows.filter(r => r.agent === agent);
-    const overallCell = agentScoreRows.length
-      ? `<td style="font-weight:800;color:${qaBarColor(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length)};background:var(--grey)">${(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length).toFixed(1)}%</td>`
+    const agentFormRows = formRows.filter(r => r.agent === agent);
+    const overallCell = agentFormRows.length
+      ? `<td style="font-weight:800;color:${qaBarColor(agentFormRows.reduce((s,r)=>s+r.score,0)/agentFormRows.length)};background:var(--grey)">${(agentFormRows.reduce((s,r)=>s+r.score,0)/agentFormRows.length).toFixed(1)}%</td>`
       : '<td style="color:var(--mut);background:var(--grey)">--</td>';
 
     return `<tr><td style="text-align:left;font-weight:700">${agent}</td>${cells}${overallCell}</tr>`;
@@ -3152,7 +3180,7 @@ function qaRenderMirrorTable() {
   }
 
   tbody.innerHTML = agentRowsHtml + overallFooterHtml;
-  const recCount = scoreRows.length || avgRows.length;
+  const recCount = formRows.length || avgRows.length;
   countEl.textContent = agents.length + ' agent' + (agents.length === 1 ? '' : 's') + ', ' + recCount + ' record' + (recCount === 1 ? '' : 's');
 }
 
@@ -3160,6 +3188,9 @@ function qaMirrorReset() {
   document.getElementById('qa-mirror-agent').value = '';
   document.getElementById('qa-mirror-month').value = '';
   document.getElementById('qa-mirror-year').value  = '';
+  const atSel = document.getElementById('qa-mirror-audittype');
+  const qaOpt = [...atSel.options].find(o => o.value.trim().toUpperCase() === 'QA');
+  atSel.value = qaOpt ? qaOpt.value : '';
   qaRenderMirrorTable();
 }
 
