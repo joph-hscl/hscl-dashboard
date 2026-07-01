@@ -3071,7 +3071,7 @@ function qaPopulateMirrorFilters() {
 }
 
 // Render the QA Scores mirror table — filtered by its own Agent / Month / Year dropdowns
-// Data source: QA Scores tab (qaRawScores) — independent of the global page filters
+// Data source: QA Scores tab (qaRawScores / qaMonthlyAverages) — independent of the global page filters
 function qaRenderMirrorTable() {
   const agentF = document.getElementById('qa-mirror-agent').value;
   const monthF = document.getElementById('qa-mirror-month').value;
@@ -3106,12 +3106,14 @@ function qaRenderMirrorTable() {
   // Which months to show as columns — all 12, or just the one selected via the Month filter
   const monthIdxs = monthF !== '' ? [parseInt(monthF, 10)] : [0,1,2,3,4,5,6,7,8,9,10,11];
 
-  // Header row: Agent | Jan | Feb | ... | Overall Average
+  // Header row: Agent | Jan | Feb ... | Agent Average
   thead.innerHTML = '<th style="text-align:left">Agent</th>' +
     monthIdxs.map(mIdx => `<th>${QA_MONTH_NAMES[mIdx]}</th>`).join('') +
-    '<th>Overall Average</th>';
+    '<th>Agent Average</th>';
 
-  // One row per agent
+  // One row per agent — "Agent Average" mirrors the sheet's YTD AVERAGE row (C145 etc.), which
+  // averages every individual weekly score cell for that agent across all months, not the
+  // month-by-month "Average" rows.
   const agentRowsHtml = agents.map(agent => {
     const cells = monthIdxs.map(mIdx => {
       const avg = agentMonthAvg[agent][mIdx];
@@ -3119,15 +3121,37 @@ function qaRenderMirrorTable() {
       return `<td style="font-weight:700;color:${qaBarColor(avg)}">${avg.toFixed(1)}%</td>`;
     }).join('');
 
-    const agentAvgRows = avgRows.filter(r => r.agent === agent);
-    const overallCell = agentAvgRows.length
-      ? `<td style="font-weight:800;color:${qaBarColor(agentAvgRows.reduce((s,r)=>s+r.avg,0)/agentAvgRows.length)};background:var(--grey)">${(agentAvgRows.reduce((s,r)=>s+r.avg,0)/agentAvgRows.length).toFixed(1)}%</td>`
+    const agentScoreRows = scoreRows.filter(r => r.agent === agent);
+    const overallCell = agentScoreRows.length
+      ? `<td style="font-weight:800;color:${qaBarColor(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length)};background:var(--grey)">${(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length).toFixed(1)}%</td>`
       : '<td style="color:var(--mut);background:var(--grey)">--</td>';
 
     return `<tr><td style="text-align:left;font-weight:700">${agent}</td>${cells}${overallCell}</tr>`;
   }).join('');
 
-  tbody.innerHTML = agentRowsHtml;
+  // Team "Overall Average" footer row — mirrors the sheet's TEAM column: each month's TEAM value
+  // is the mean of that month's agent averages (skipping agents with no data / #DIV/0! that month),
+  // and the single Overall Average is the mean of those per-month TEAM values (matches J145).
+  let overallFooterHtml = '';
+  if (!agentF) {
+    const teamByMonth = Array(12).fill(null);
+    for (let m = 0; m < 12; m++) {
+      const vals = avgRows.filter(r => r.month === m).map(r => r.avg);
+      if (vals.length) teamByMonth[m] = vals.reduce((s,v)=>s+v,0) / vals.length;
+    }
+    const teamCells = monthIdxs.map(mIdx => {
+      const v = teamByMonth[mIdx];
+      return v === null ? '<td style="color:var(--mut)">--</td>' : `<td style="font-weight:700;color:${qaBarColor(v)}">${v.toFixed(1)}%</td>`;
+    }).join('');
+    const monthsWithData = teamByMonth.filter(v => v !== null);
+    const overallVal = monthsWithData.length ? monthsWithData.reduce((s,v)=>s+v,0)/monthsWithData.length : null;
+    const overallTeamCell = overallVal === null
+      ? '<td style="color:var(--mut);background:var(--navy)">--</td>'
+      : `<td style="font-weight:800;color:${qaBarColor(overallVal)};background:var(--navy)">${overallVal.toFixed(1)}%</td>`;
+    overallFooterHtml = `<tr style="background:var(--navy);color:#fff"><td style="text-align:left;font-weight:800;color:#fff">Overall Average</td>${teamCells}${overallTeamCell}</tr>`;
+  }
+
+  tbody.innerHTML = agentRowsHtml + overallFooterHtml;
   const recCount = scoreRows.length || avgRows.length;
   countEl.textContent = agents.length + ' agent' + (agents.length === 1 ? '' : 's') + ', ' + recCount + ' record' + (recCount === 1 ? '' : 's');
 }
