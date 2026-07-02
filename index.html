@@ -3473,7 +3473,7 @@ function qaRenderCategoryMonthlyTrend(containerId, sourceRows, field, categories
         const avg = d.sum / d.count;
         const h = Math.max(4, (avg/100*84)).toFixed(0);
         html += `<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;width:22px">
-          <div style="font-size:9px;font-weight:700;color:${colors[i]}">${avg.toFixed(1)}%</div>
+          <div style="font-size:9px;font-weight:700;color:${colors[i]}">${avg.toFixed(2)}%</div>
           <div style="width:100%;height:${h}px;background:${colors[i]};border-radius:3px 3px 0 0;opacity:.9"></div>
         </div>`;
       }
@@ -3495,7 +3495,7 @@ function qaRenderCategoryMonthlyTrend(containerId, sourceRows, field, categories
         const d = byMonth[key][cat];
         if (!d) return '<td style="text-align:center;color:var(--mut)">--</td>';
         const avg = d.sum / d.count;
-        return `<td style="text-align:center;font-weight:700;color:${qaBarColor(avg)}">${avg.toFixed(1)}% <span style="font-weight:400;color:var(--mut);font-size:10px">(${d.count}x)</span></td>`;
+        return `<td style="text-align:center;font-weight:700;color:${qaBarColor(avg)}">${avg.toFixed(2)}% <span style="font-weight:400;color:var(--mut);font-size:10px">(${d.count}x)</span></td>`;
       }).join('');
       return `<tr><td style="text-align:center">${lbl}</td>${cells}</tr>`;
     }).join('') + '</tbody></table>';
@@ -3588,12 +3588,12 @@ function qaRenderMirrorTable() {
     const cells = monthIdxs.map(mIdx => {
       const avg = agentMonthAvg[agent][mIdx];
       if (avg === null) return '<td style="text-align:center;color:var(--mut)">--</td>';
-      return `<td style="text-align:center;font-weight:700;color:${qaBarColor(avg)}">${avg.toFixed(1)}%</td>`;
+      return `<td style="text-align:center;font-weight:700;color:${qaBarColor(avg)}">${avg.toFixed(2)}%</td>`;
     }).join('');
 
     const agentScoreRows = scoreRows.filter(r => r.agent === agent);
     const overallCell = agentScoreRows.length
-      ? `<td style="text-align:center;font-weight:800;color:${qaBarColor(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length)};background:var(--grey)">${(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length).toFixed(1)}%</td>`
+      ? `<td style="text-align:center;font-weight:800;color:${qaBarColor(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length)};background:var(--grey)">${(agentScoreRows.reduce((s,r)=>s+r.score,0)/agentScoreRows.length).toFixed(2)}%</td>`
       : '<td style="text-align:center;color:var(--mut);background:var(--grey)">--</td>';
 
     return `<tr><td style="text-align:center;font-weight:700">${agent}</td>${cells}${overallCell}</tr>`;
@@ -3612,12 +3612,12 @@ function qaRenderMirrorTable() {
     }
     const teamCells = monthIdxs.map(mIdx => {
       const v = teamByMonth[mIdx];
-      return v === null ? '<td style="text-align:center;color:var(--mut)">--</td>' : `<td style="text-align:center;font-weight:700;color:${qaBarColor(v)}">${v.toFixed(1)}%</td>`;
+      return v === null ? '<td style="text-align:center;color:var(--mut)">--</td>' : `<td style="text-align:center;font-weight:700;color:${qaBarColor(v)}">${v.toFixed(2)}%</td>`;
     }).join('');
     const overallVal = allScoreRows.length ? allScoreRows.reduce((s,r)=>s+r.score,0)/allScoreRows.length : null;
     const overallTeamCell = overallVal === null
       ? '<td style="text-align:center;color:var(--mut);background:var(--navy)">--</td>'
-      : `<td style="text-align:center;font-weight:800;color:${qaBarColor(overallVal)};background:var(--navy)">${overallVal.toFixed(1)}%</td>`;
+      : `<td style="text-align:center;font-weight:800;color:${qaBarColor(overallVal)};background:var(--navy)">${overallVal.toFixed(2)}%</td>`;
     overallFooterHtml = `<tr style="background:var(--navy);color:#fff"><td style="text-align:center;font-weight:800;color:#fff">Overall Average</td>${teamCells}${overallTeamCell}</tr>`;
   }
 
@@ -3767,7 +3767,7 @@ function qaRenderScoresSection() {
       <td style="text-align:center">${r.month || ''}</td>
       <td style="text-align:center;font-weight:600">${r.agent}</td>
       <td style="text-align:center">${r.auditor}</td>
-      <td style="text-align:center;font-weight:700;color:${scoreColor}">${r.score.toFixed(1)}%</td>
+      <td style="text-align:center;font-weight:700;color:${scoreColor}">${r.score.toFixed(2)}%</td>
       <td style="text-align:center">${linkCell}</td>
       <td style="text-align:center">${r.topic || ''}</td>
       <td style="text-align:center">${r.audittype || ''}</td>
