@@ -4110,7 +4110,7 @@ function cstResetFilter() {
 }
 
 // ═══════════════════════════════════════════════════
-// INIT — load Fulfillment on page load
+// INIT — load Team KPI (Agent Summary) on page load
 // ═══════════════════════════════════════════════════
 
 // Extend go() to lazy-load tab data on first visit
@@ -4126,6 +4126,6 @@ function cstResetFilter() {
 })();
 
 window.addEventListener('load', function() {
-  refreshFul();
+  agsLoad();
 });
 </script>
