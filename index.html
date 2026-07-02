@@ -369,7 +369,7 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <div class="ags-team-cell">
       <div class="ags-team-label">Avg Messages Handled / Day</div>
       <div class="ags-team-val" id="ags-ts-avg-msgs">--</div>
-      <div class="ags-team-sub">Total Msgs Sent (col BL) / Days Worked (col N)</div>
+      <div class="ags-team-sub">Avg of each agent's Msgs Sent (col BL) / Days Worked</div>
     </div>
     <div class="ags-team-cell ta">
       <div class="ags-team-label">Handle Time / Cust (min)</div>
@@ -2425,11 +2425,20 @@ function agsRenderTeamSummary() {
   const totalMsgs = agsSum(agsFiltered, 'msgsSent');
   set('ags-ts-total-msgs', totalMsgs !== null ? totalMsgs.toLocaleString() : '--');
 
-  // 2. Avg Messages Handled per Day — Total Messages Sent (col BL) / Total Days Worked (col N seconds / 28800),
-  // by Agent (col E), respecting the Bucket Beginning (col C) date filter already applied in agsFiltered
-  const totalDaysWorked = agsSum(agsFiltered, 'daysWorked');
-  const avgMsgs = (totalMsgs !== null && totalDaysWorked !== null && totalDaysWorked > 0)
-    ? totalMsgs / totalDaysWorked : null;
+  // 2. Avg Messages Handled per Day — mean of each agent's own (Total Messages Sent [col BL] / Total Days
+  // Worked [col N seconds / 28800]), excluding agents whose average is 0/blank — mirrors the reference sheet's
+  // =AVERAGEIFS(range, range, ">0", ...) pattern: average the per-agent daily averages, not a single pooled ratio.
+  // Respects Agent (col E), Role, Team filters and the Bucket Beginning (col C) date filter already applied in agsFiltered.
+  const perAgentMsgDay = {};
+  agsFiltered.forEach(r => {
+    if (!perAgentMsgDay[r.name]) perAgentMsgDay[r.name] = { msgs: 0, days: 0 };
+    if (r.msgsSent !== null)    perAgentMsgDay[r.name].msgs += r.msgsSent;
+    if (r.daysWorked !== null)  perAgentMsgDay[r.name].days += r.daysWorked;
+  });
+  const perAgentAvgs = Object.values(perAgentMsgDay)
+    .map(a => a.days > 0 ? a.msgs / a.days : 0)
+    .filter(v => v > 0);
+  const avgMsgs = perAgentAvgs.length ? perAgentAvgs.reduce((s,v) => s+v, 0) / perAgentAvgs.length : null;
   set('ags-ts-avg-msgs', avgMsgs !== null ? agsFmt(avgMsgs, 1) : '--');
 
   // 3. Handle Time / Cust (min) — avg of col CA (seconds) converted to minutes
@@ -2475,8 +2484,8 @@ function agsRenderAgentTable() {
       <td style="text-align:left;white-space:nowrap">${r.team || '--'}</td>
       <td style="text-align:left;white-space:nowrap">${r.role || '--'}</td>
       <td style="white-space:nowrap">${r.fromRaw || ''} - ${r.toRaw || ''}</td>
-      <td>${r.msgsSentL !== null ? r.msgsSentL.toLocaleString() : '--'}</td>
-      <td>${r.msgsSentL !== null && r.days !== null && r.days > 0 ? agsFmt(r.msgsSentL / r.days, 1) : '--'}</td>
+      <td>${r.msgsSent !== null ? r.msgsSent.toLocaleString() : '--'}</td>
+      <td>${r.msgsSent !== null && r.daysWorked !== null && r.daysWorked > 0 ? agsFmt(r.msgsSent / r.daysWorked, 1) : '--'}</td>
       <td>${r.convAI !== null ? r.convAI.toLocaleString() : '--'}</td>
       <td>${agentHtc}</td>
       <td>${agentCpd}</td>
