@@ -364,12 +364,12 @@ tr.gt{background:var(--gmid)!important;font-weight:700}
     <div class="ags-team-cell tb">
       <div class="ags-team-label">Total Messages Handled</div>
       <div class="ags-team-val" id="ags-ts-total-msgs">--</div>
-      <div class="ags-team-sub">Sum of Messages Sent (col L)</div>
+      <div class="ags-team-sub">Sum of Messages Sent (col BL)</div>
     </div>
     <div class="ags-team-cell">
       <div class="ags-team-label">Avg Messages Handled / Day</div>
       <div class="ags-team-val" id="ags-ts-avg-msgs">--</div>
-      <div class="ags-team-sub">Avg of Messages Sent (col L)</div>
+      <div class="ags-team-sub">Total Msgs Sent (col BL) / Days Worked (col N)</div>
     </div>
     <div class="ags-team-cell ta">
       <div class="ags-team-label">Handle Time / Cust (min)</div>
@@ -2425,9 +2425,12 @@ function agsRenderTeamSummary() {
   const totalMsgs = agsSum(agsFiltered, 'msgsSent');
   set('ags-ts-total-msgs', totalMsgs !== null ? totalMsgs.toLocaleString() : '--');
 
-  // 2. Avg Messages Handled per Day — avg of Messages Sent (col L)
-  const avgMsgs = agsAvg(agsFiltered, 'msgsSentL');
-  set('ags-ts-avg-msgs', agsFmt(avgMsgs, 1));
+  // 2. Avg Messages Handled per Day — Total Messages Sent (col BL) / Total Days Worked (col N seconds / 28800),
+  // by Agent (col E), respecting the Bucket Beginning (col C) date filter already applied in agsFiltered
+  const totalDaysWorked = agsSum(agsFiltered, 'daysWorked');
+  const avgMsgs = (totalMsgs !== null && totalDaysWorked !== null && totalDaysWorked > 0)
+    ? totalMsgs / totalDaysWorked : null;
+  set('ags-ts-avg-msgs', avgMsgs !== null ? agsFmt(avgMsgs, 1) : '--');
 
   // 3. Handle Time / Cust (min) — avg of col CA (seconds) converted to minutes
   const htcSecAvg = agsAvg(agsFiltered, 'custHandleSec');
