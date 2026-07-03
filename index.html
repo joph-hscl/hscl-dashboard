@@ -2576,10 +2576,10 @@ function agsRenderTeamSummary() {
   set('ags-ts-msgs', (() => { const v = agsTeamRatio('msgsSent', null); return v !== null ? agsFmt(v, 0) : '--'; })());
 
   // 2. Avg Responses / Day — mean of each agent's own (Messages Sent [col BL] / Days Worked [Active Time > 4hr count])
-  set('ags-ts-rpd', (() => { const v = agsTeamRatio('msgsSent', 'daysWorked'); return v !== null ? agsFmt(v, 1) : '--'; })());
+  set('ags-ts-rpd', (() => { const v = agsTeamRatio('msgsSent', 'daysWorked'); return v !== null ? agsFmt(v, 2) : '--'; })());
 
   // 3. Avg Customers / Day — mean of each agent's own (Conv. Closed [col AI] / Days Worked [Active Time > 4hr count])
-  set('ags-ts-cpd', (() => { const v = agsTeamRatio('convAI', 'daysWorked'); return v !== null ? agsFmt(v, 1) : '--'; })());
+  set('ags-ts-cpd', (() => { const v = agsTeamRatio('convAI', 'daysWorked'); return v !== null ? agsFmt(v, 2) : '--'; })());
 
   // 4. Handle Time / Cust (min) — mean of each agent's own (Handle Time [col CA sec] / Conv. Closed [col AI] / 60)
   set('ags-ts-htc', (() => {
@@ -2591,7 +2591,7 @@ function agsRenderTeamSummary() {
     });
     const ratios = Object.values(perAgent).map(a => a.conv > 0 ? a.sec / a.conv / 60 : 0).filter(v => v > 0);
     const v = ratios.length ? ratios.reduce((s,x)=>s+x,0)/ratios.length : null;
-    return v !== null ? agsFmt(v, 1) : '--';
+    return v !== null ? agsFmt(v, 2) : '--';
   })());
 
   // 5. Customer / Hr — mean of each agent's own (Conv. Closed [col AI] / Active Hours [col R sec / 3600])
@@ -2604,7 +2604,7 @@ function agsRenderTeamSummary() {
     });
     const ratios = Object.values(perAgent).map(a => a.activeHrs > 0 ? a.conv / a.activeHrs : 0).filter(v => v > 0);
     const v = ratios.length ? ratios.reduce((s,x)=>s+x,0)/ratios.length : null;
-    return v !== null ? agsFmt(v, 1) : '--';
+    return v !== null ? agsFmt(v, 2) : '--';
   })());
 
   // 6. Responses / Hr — mean of each agent's own (Messages Sent [col BL] / Active Hours [col R sec / 3600])
@@ -2630,7 +2630,7 @@ function agsRenderTeamSummary() {
     });
     const ratios = Object.values(perAgent).map(a => a.login > 0 ? a.active / a.login * 100 : 0).filter(v => v > 0);
     const v = ratios.length ? ratios.reduce((s,x)=>s+x,0)/ratios.length : null;
-    return v !== null ? agsFmt(v, 1) + '%' : '--';
+    return v !== null ? agsFmt(v, 2) + '%' : '--';
   })());
 
   // 8. Hours Active / Day — mean of each agent's own (Active Time [col R sec / 3600] / Days Worked [Active Time > 4hr count])
@@ -2643,7 +2643,7 @@ function agsRenderTeamSummary() {
     });
     const ratios = Object.values(perAgent).map(a => a.days > 0 ? a.activeHrs / a.days : 0).filter(v => v > 0);
     const v = ratios.length ? ratios.reduce((s,x)=>s+x,0)/ratios.length : null;
-    return v !== null ? agsFmt(v, 1) : '--';
+    return v !== null ? agsFmt(v, 2) : '--';
   })());
 
   // 9. Away Hours Time — mean of each agent's own total Away Time (col S sec / 3600) across the filtered period
@@ -2655,7 +2655,7 @@ function agsRenderTeamSummary() {
     });
     const vals = Object.values(perAgent).filter(v => v > 0);
     const v = vals.length ? vals.reduce((s,x)=>s+x,0)/vals.length : null;
-    return v !== null ? agsFmt(v, 1) : '--';
+    return v !== null ? agsFmt(v, 2) : '--';
   })());
 }
 
